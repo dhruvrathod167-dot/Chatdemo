@@ -474,6 +474,15 @@ export default function QuickViewModal() {
                       Material: {product.material}
                     </p>
                   )}
+
+                  {/* View Full Details link */}
+                  <a
+                    href={`/product/${product.slug}`}
+                    className="mt-3 block text-center font-['Inter'] text-xs uppercase tracking-widest text-[#C9A96E] hover:text-black transition-colors"
+                    onClick={() => closeQuickView()}
+                  >
+                    View Full Details
+                  </a>
                 </div>
               </div>
             ) : (
