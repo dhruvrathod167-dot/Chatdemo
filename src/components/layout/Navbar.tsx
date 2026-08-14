@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-
 import { useCartStore } from '@/stores/cart-store';
 import { useWishlistStore } from '@/stores/wishlist-store';
 import { useUIStore } from '@/stores/ui-store';
+import { useHydrated } from '@/hooks/use-hydrated';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -54,6 +55,8 @@ const mobileLinkVariants = {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
+
+  const hydrated = useHydrated();
 
   const cartItemCount = useCartStore((s) => s.getItemCount());
   const wishlistCount = useWishlistStore((s) => s.getCount());
@@ -164,7 +167,7 @@ export default function Navbar() {
             >
               <Heart className="h-[20px] w-[20px]" />
               <AnimatePresence>
-                {wishlistCount > 0 && (
+                {hydrated && wishlistCount > 0 && (
                   <motion.span
                     key="wishlist-badge"
                     initial={{ scale: 0, opacity: 0 }}
@@ -189,7 +192,7 @@ export default function Navbar() {
             >
               <ShoppingBag className="h-[20px] w-[20px]" />
               <AnimatePresence>
-                {cartItemCount > 0 && (
+                {hydrated && cartItemCount > 0 && (
                   <motion.span
                     key="cart-badge"
                     initial={{ scale: 0, opacity: 0 }}

@@ -19,7 +19,7 @@ class CategoryListSerializer(serializers.ModelSerializer):
     """
 
     image_thumbnail = serializers.SerializerMethodField()
-    product_count = serializers.IntegerField(read_only=True)
+    product_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
@@ -32,6 +32,9 @@ class CategoryListSerializer(serializers.ModelSerializer):
             'is_featured',
             'sort_order',
         ]
+
+    def get_product_count(self, obj):
+        return obj.product_count
 
     def get_image_thumbnail(self, obj):
         if obj.image:
@@ -104,7 +107,7 @@ class BrandListSerializer(serializers.ModelSerializer):
     """
 
     logo_url = serializers.SerializerMethodField()
-    product_count = serializers.IntegerField(read_only=True)
+    product_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Brand
@@ -118,6 +121,9 @@ class BrandListSerializer(serializers.ModelSerializer):
             'is_featured',
             'product_count',
         ]
+
+    def get_product_count(self, obj):
+        return obj.product_count
 
     def get_logo_url(self, obj):
         if obj.logo:

@@ -129,7 +129,7 @@ class OrderDetailView(RetrieveAPIView):
     """
 
     serializer_class = OrderDetailSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     def get_queryset(self):
         return Order.objects.filter(

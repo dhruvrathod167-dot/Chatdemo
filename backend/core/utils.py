@@ -401,12 +401,12 @@ def send_order_confirmation_email(order):
     for item in order.items.all():
         lines.append(
             f'  {item.product_name} x {item.quantity} '
-            f'— ${item.unit_price:.2f} each'
+            f'— ${item.product_price:.2f} each'
         )
 
     lines.extend([
         '─' * 40,
-        f'Total: ${order.total_amount:.2f}',
+        f'Total: ${order.total:.2f}',
         '',
         'Shipping Address:',
         f'  {order.shipping_address}',
@@ -440,7 +440,7 @@ def send_order_confirmation_email(order):
         html_body += f"""
             <tr style="border-bottom: 1px solid #eee;">
                 <td style="padding: 8px 0;">{item.product_name} x {item.quantity}</td>
-                <td style="text-align: right;">${item.unit_price * item.quantity:.2f}</td>
+                <td style="text-align: right;">${item.product_price * item.quantity:.2f}</td>
             </tr>
         """
 

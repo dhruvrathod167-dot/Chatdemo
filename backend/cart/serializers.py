@@ -12,11 +12,10 @@ class CartItemSerializer(serializers.ModelSerializer):
     
     Includes computed line_total field.
     """
-    line_total = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True,
-    )
+    line_total = serializers.SerializerMethodField()
+
+    def get_line_total(self, obj):
+        return obj.get_line_total()
 
     class Meta:
         model = CartItem
@@ -147,22 +146,23 @@ class CartSerializer(serializers.ModelSerializer):
     Serializer for the full cart with nested items and computed totals.
     """
     items = CartItemSerializer(many=True, read_only=True)
-    subtotal = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True,
-    )
+    subtotal = serializers.SerializerMethodField()
     coupon_discount = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
         read_only=True,
     )
-    total = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True,
-    )
-    item_count = serializers.IntegerField(read_only=True)
+    total = serializers.SerializerMethodField()
+    item_count = serializers.SerializerMethodField()
+
+    def get_subtotal(self, obj):
+        return obj.get_subtotal()
+
+    def get_total(self, obj):
+        return obj.get_grand_total()
+
+    def get_item_count(self, obj):
+        return obj.get_item_count()
     coupon_code = serializers.CharField(
         source='coupon.code',
         read_only=True,

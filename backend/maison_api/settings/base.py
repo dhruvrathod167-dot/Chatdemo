@@ -35,7 +35,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='*",
+    default='*',
     cast=Csv()
 )
 
@@ -587,6 +587,11 @@ LOGGING = {
 
 # Ensure logs directory exists
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# ==============================================================================
+# FRONTEND CONFIGURATION
+# ==============================================================================
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 # ==============================================================================
 # SECURITY CONFIGURATION

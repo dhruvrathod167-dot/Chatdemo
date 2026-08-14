@@ -100,7 +100,7 @@ async function main() {
     'tailored-wool-blazer': [
       'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1548624149-f9462096e4e2?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&h=1100&fit=crop',
     ],
     'leather-sculptural-heel': [
       'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&h=1100&fit=crop',
@@ -143,9 +143,9 @@ async function main() {
       'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&h=1100&fit=crop',
     ],
     'leather-tote-bag': [
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=800&h=1100&fit=crop',
+      'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/383de39054ae.jpg',
+      'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/f15ffcdd717b.jpg',
+      'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/4bf9d618b974.jpg',
     ],
     'embroidered-silk-kimono-jacket': [
       'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=800&h=1100&fit=crop',
@@ -158,14 +158,14 @@ async function main() {
       'https://images.unsplash.com/photo-1578681994506-b8f463449011?w=800&h=1100&fit=crop',
     ],
     'satin-draped-midi-dress': [
-      'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1596253255038-7d8a89e1c2a1?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1550639525-c97d455acf70?w=800&h=1100&fit=crop',
     ],
     'woven-leather-belt': [
       'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1622445275576-721325763afe?w=800&h=1100&fit=crop',
     ],
     'oversized-sunglasses': [
       'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&h=1100&fit=crop',
@@ -173,9 +173,9 @@ async function main() {
       'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=1100&fit=crop',
     ],
     'leather-weekend-bag': [
-      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=1100&fit=crop',
+      'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/e2b2bee5eb50.jpg',
+      'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/67863ec8c3de.jpg',
+      'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/2ee12a403511.jpg',
     ],
   };
 
