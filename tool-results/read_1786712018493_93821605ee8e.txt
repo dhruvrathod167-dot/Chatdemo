@@ -1,0 +1,1070 @@
+     1→/* ═══════════════════════════════════════════════════════════
+     2→   MAISON — Luxury Fashion eCommerce
+     3→   Design System · Global Styles
+     4→   Tailwind CSS v4
+     5→   ═══════════════════════════════════════════════════════════ */
+     6→
+     7→@import "tailwindcss";
+     8→@import "tw-animate-css";
+     9→
+    10→/* ─── Custom Variant ──────────────────────────────────────── */
+    11→@custom-variant dark (&:is(.dark *));
+    12→
+    13→/* ─── Theme Tokens ────────────────────────────────────────── */
+    14→@theme inline {
+    15→  /* shadcn/ui semantic tokens */
+    16→  --color-background: var(--background);
+    17→  --color-foreground: var(--foreground);
+    18→  --font-sans: var(--font-inter);
+    19→  --font-mono: var(--font-geist-mono);
+    20→  --color-sidebar-ring: var(--sidebar-ring);
+    21→  --color-sidebar-border: var(--sidebar-border);
+    22→  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    23→  --color-sidebar-accent: var(--sidebar-accent);
+    24→  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    25→  --color-sidebar-primary: var(--sidebar-primary);
+    26→  --color-sidebar-foreground: var(--sidebar-foreground);
+    27→  --color-sidebar: var(--sidebar);
+    28→  --color-chart-5: var(--chart-5);
+    29→  --color-chart-4: var(--chart-4);
+    30→  --color-chart-3: var(--chart-3);
+    31→  --color-chart-2: var(--chart-2);
+    32→  --color-chart-1: var(--chart-1);
+    33→  --color-ring: var(--ring);
+    34→  --color-input: var(--input);
+    35→  --color-border: var(--border);
+    36→  --color-destructive: var(--destructive);
+    37→  --color-accent-foreground: var(--accent-foreground);
+    38→  --color-accent: var(--accent);
+    39→  --color-muted-foreground: var(--muted-foreground);
+    40→  --color-muted: var(--muted);
+    41→  --color-secondary-foreground: var(--secondary-foreground);
+    42→  --color-secondary: var(--secondary);
+    43→  --color-primary-foreground: var(--primary-foreground);
+    44→  --color-primary: var(--primary);
+    45→  --color-popover-foreground: var(--popover-foreground);
+    46→  --color-popover: var(--popover);
+    47→  --color-card-foreground: var(--card-foreground);
+    48→  --color-card: var(--card);
+    49→  --radius-sm: calc(var(--radius) - 4px);
+    50→  --radius-md: calc(var(--radius) - 2px);
+    51→  --radius-lg: var(--radius);
+    52→  --radius-xl: calc(var(--radius) + 4px);
+    53→
+    54→  /* Luxury palette */
+    55→  --color-deep-black: #0A0A0A;
+    56→  --color-charcoal: #1A1A1A;
+    57→  --color-charcoal-light: #2A2A2A;
+    58→  --color-pure-white: #FAFAFA;
+    59→  --color-gold: #C9A96E;
+    60→  --color-gold-bright: #D4AF37;
+    61→  --color-gold-dark: #B8860B;
+    62→  --color-platinum: #C0C0C0;
+    63→  --color-silver: #D1D5DB;
+    64→
+    65→  /* Font families */
+    66→  --font-playfair: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    67→  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    68→}
+    69→
+    70→/* ─── Custom Properties (Light) ───────────────────────────── */
+    71→:root {
+    72→  --radius: 0.625rem;
+    73→
+    74→  /* Luxury colour palette */
+    75→  --deep-black: #0A0A0A;
+    76→  --charcoal: #1A1A1A;
+    77→  --charcoal-light: #2A2A2A;
+    78→  --pure-white: #FAFAFA;
+    79→  --gold: #C9A96E;
+    80→  --gold-bright: #D4AF37;
+    81→  --gold-dark: #B8860B;
+    82→  --platinum: #C0C0C0;
+    83→  --silver: #D1D5DB;
+    84→
+    85→  /* Luxury gradients */
+    86→  --gradient-gold: linear-gradient(135deg, #B8860B 0%, #D4AF37 40%, #C9A96E 70%, #B8860B 100%);
+    87→  --gradient-gold-subtle: linear-gradient(135deg, #C9A96E 0%, #D4AF37 50%, #C9A96E 100%);
+    88→  --gradient-dark: linear-gradient(180deg, #0A0A0A 0%, #1A1A1A 100%);
+    89→  --gradient-dark-reverse: linear-gradient(0deg, #0A0A0A 0%, #1A1A1A 100%);
+    90→  --gradient-charcoal: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 50%, #1A1A1A 100%);
+    91→  --gradient-fade-black: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.8) 100%);
+    92→  --gradient-fade-white: linear-gradient(180deg, transparent 0%, rgba(250, 250, 250, 0.95) 100%);
+    93→
+    94→  /* shadcn/ui semantic overrides (light luxury) */
+    95→  --background: #FAFAFA;
+    96→  --foreground: #0A0A0A;
+    97→  --card: #FAFAFA;
+    98→  --card-foreground: #0A0A0A;
+    99→  --popover: #FAFAFA;
+   100→  --popover-foreground: #0A0A0A;
+   101→  --primary: #0A0A0A;
+   102→  --primary-foreground: #FAFAFA;
+   103→  --secondary: #F5F5F5;
+   104→  --secondary-foreground: #1A1A1A;
+   105→  --muted: #F5F5F5;
+   106→  --muted-foreground: #71717A;
+   107→  --accent: #C9A96E;
+   108→  --accent-foreground: #0A0A0A;
+   109→  --destructive: oklch(0.577 0.245 27.325);
+   110→  --border: #E4E4E7;
+   111→  --input: #E4E4E7;
+   112→  --ring: #C9A96E;
+   113→  --chart-1: #C9A96E;
+   114→  --chart-2: #1A1A1A;
+   115→  --chart-3: #D4AF37;
+   116→  --chart-4: #B8860B;
+   117→  --chart-5: #C0C0C0;
+   118→  --sidebar: #FAFAFA;
+   119→  --sidebar-foreground: #0A0A0A;
+   120→  --sidebar-primary: #0A0A0A;
+   121→  --sidebar-primary-foreground: #FAFAFA;
+   122→  --sidebar-accent: #F5F5F5;
+   123→  --sidebar-accent-foreground: #1A1A1A;
+   124→  --sidebar-border: #E4E4E7;
+   125→  --sidebar-ring: #C9A96E;
+   126→
+   127→  /* Shadows */
+   128→  --shadow-luxury-sm: 0 1px 3px rgba(10, 10, 10, 0.04), 0 1px 2px rgba(10, 10, 10, 0.06);
+   129→  --shadow-luxury: 0 4px 16px rgba(10, 10, 10, 0.06), 0 2px 6px rgba(10, 10, 10, 0.04);
+   130→  --shadow-luxury-md: 0 8px 32px rgba(10, 10, 10, 0.08), 0 4px 12px rgba(10, 10, 10, 0.04);
+   131→  --shadow-luxury-lg: 0 16px 48px rgba(10, 10, 10, 0.1), 0 8px 20px rgba(10, 10, 10, 0.06);
+   132→  --shadow-luxury-xl: 0 24px 64px rgba(10, 10, 10, 0.12), 0 12px 28px rgba(10, 10, 10, 0.08);
+   133→  --shadow-gold: 0 4px 24px rgba(201, 169, 110, 0.2), 0 2px 8px rgba(201, 169, 110, 0.1);
+   134→  --shadow-gold-lg: 0 8px 40px rgba(201, 169, 110, 0.25), 0 4px 16px rgba(201, 169, 110, 0.15);
+   135→  --shadow-inset-luxury: inset 0 1px 2px rgba(10, 10, 10, 0.06);
+   136→}
+   137→
+   138→/* ─── Custom Properties (Dark) ────────────────────────────── */
+   139→.dark {
+   140→  --background: #0A0A0A;
+   141→  --foreground: #FAFAFA;
+   142→  --card: #1A1A1A;
+   143→  --card-foreground: #FAFAFA;
+   144→  --popover: #1A1A1A;
+   145→  --popover-foreground: #FAFAFA;
+   146→  --primary: #FAFAFA;
+   147→  --primary-foreground: #0A0A0A;
+   148→  --secondary: #2A2A2A;
+   149→  --secondary-foreground: #FAFAFA;
+   150→  --muted: #2A2A2A;
+   151→  --muted-foreground: #A1A1AA;
+   152→  --accent: #C9A96E;
+   153→  --accent-foreground: #FAFAFA;
+   154→  --destructive: oklch(0.704 0.191 22.216);
+   155→  --border: rgba(250, 250, 250, 0.1);
+   156→  --input: rgba(250, 250, 250, 0.15);
+   157→  --ring: #C9A96E;
+   158→  --chart-1: #D4AF37;
+   159→  --chart-2: #C9A96E;
+   160→  --chart-3: #B8860B;
+   161→  --chart-4: #C0C0C0;
+   162→  --chart-5: #D1D5DB;
+   163→  --sidebar: #1A1A1A;
+   164→  --sidebar-foreground: #FAFAFA;
+   165→  --sidebar-primary: #C9A96E;
+   166→  --sidebar-primary-foreground: #0A0A0A;
+   167→  --sidebar-accent: #2A2A2A;
+   168→  --sidebar-accent-foreground: #FAFAFA;
+   169→  --sidebar-border: rgba(250, 250, 250, 0.1);
+   170→  --sidebar-ring: #C9A96E;
+   171→
+   172→  --shadow-luxury-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
+   173→  --shadow-luxury: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+   174→  --shadow-luxury-md: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+   175→  --shadow-luxury-lg: 0 16px 48px rgba(0, 0, 0, 0.5), 0 8px 20px rgba(0, 0, 0, 0.4);
+   176→  --shadow-luxury-xl: 0 24px 64px rgba(0, 0, 0, 0.6), 0 12px 28px rgba(0, 0, 0, 0.4);
+   177→  --shadow-gold: 0 4px 24px rgba(201, 169, 110, 0.15), 0 2px 8px rgba(201, 169, 110, 0.1);
+   178→  --shadow-gold-lg: 0 8px 40px rgba(201, 169, 110, 0.2), 0 4px 16px rgba(201, 169, 110, 0.1);
+   179→  --shadow-inset-luxury: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+   180→
+   181→  --gradient-fade-black: linear-gradient(180deg, transparent 0%, rgba(10, 10, 10, 0.95) 100%);
+   182→  --gradient-fade-white: linear-gradient(180deg, transparent 0%, rgba(250, 250, 250, 0.8) 100%);
+   183→}
+   184→
+   185→/* ─── Base Layer ──────────────────────────────────────────── */
+   186→@layer base {
+   187→  * {
+   188→    @apply border-border outline-ring/50;
+   189→  }
+   190→
+   191→  html {
+   192→    scroll-behavior: smooth;
+   193→    -webkit-font-smoothing: antialiased;
+   194→    -moz-osx-font-smoothing: grayscale;
+   195→    text-rendering: optimizeLegibility;
+   196→    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+   197→  }
+   198→
+   199→  body {
+   200→    @apply bg-background text-foreground;
+   201→    font-family: var(--font-inter);
+   202→    letter-spacing: 0.01em;
+   203→    line-height: 1.6;
+   204→    overflow-x: hidden;
+   205→  }
+   206→
+   207→  /* ── Selection ────────────────────────────────────────── */
+   208→  ::selection {
+   209→    background-color: rgba(201, 169, 110, 0.3);
+   210→    color: inherit;
+   211→  }
+   212→
+   213→  .dark ::selection {
+   214→    background-color: rgba(201, 169, 110, 0.4);
+   215→    color: #FAFAFA;
+   216→  }
+   217→
+   218→  /* ── Focus Visible ────────────────────────────────────── */
+   219→  :focus-visible {
+   220→    outline: 1px solid var(--gold);
+   221→    outline-offset: 2px;
+   222→    border-radius: 2px;
+   223→  }
+   224→
+   225→  /* ── Headings ─────────────────────────────────────────── */
+   226→  h1, h2, h3, h4, h5, h6 {
+   227→    font-family: var(--font-playfair);
+   228→    font-weight: 500;
+   229→    letter-spacing: -0.01em;
+   230→    line-height: 1.15;
+   231→    text-wrap: balance;
+   232→  }
+   233→}
+   234→
+   235→/* ─── Custom Scrollbar ────────────────────────────────────── */
+   236→@layer base {
+   237→  /* Webkit (Chrome, Safari, Edge) */
+   238→  ::-webkit-scrollbar {
+   239→    width: 6px;
+   240→    height: 6px;
+   241→  }
+   242→
+   243→  ::-webkit-scrollbar-track {
+   244→    background: transparent;
+   245→  }
+   246→
+   247→  ::-webkit-scrollbar-thumb {
+   248→    background: var(--platinum);
+   249→    border-radius: 999px;
+   250→    transition: background 0.3s ease;
+   251→  }
+   252→
+   253→  ::-webkit-scrollbar-thumb:hover {
+   254→    background: var(--gold);
+   255→  }
+   256→
+   257→  .dark ::-webkit-scrollbar-thumb {
+   258→    background: var(--charcoal-light);
+   259→  }
+   260→
+   261→  .dark ::-webkit-scrollbar-thumb:hover {
+   262→    background: var(--gold);
+   263→  }
+   264→
+   265→  /* Firefox */
+   266→  * {
+   267→    scrollbar-width: thin;
+   268→    scrollbar-color: var(--platinum) transparent;
+   269→  }
+   270→
+   271→  .dark * {
+   272→    scrollbar-color: var(--charcoal-light) transparent;
+   273→  }
+   274→}
+   275→
+   276→/* ═══════════════════════════════════════════════════════════
+   277→   ANIMATION KEYFRAMES
+   278→   ═══════════════════════════════════════════════════════════ */
+   279→
+   280→@keyframes fadeIn {
+   281→  from { opacity: 0; }
+   282→  to   { opacity: 1; }
+   283→}
+   284→
+   285→@keyframes fadeInUp {
+   286→  from {
+   287→    opacity: 0;
+   288→    transform: translateY(24px);
+   289→  }
+   290→  to {
+   291→    opacity: 1;
+   292→    transform: translateY(0);
+   293→  }
+   294→}
+   295→
+   296→@keyframes fadeInDown {
+   297→  from {
+   298→    opacity: 0;
+   299→    transform: translateY(-24px);
+   300→  }
+   301→  to {
+   302→    opacity: 1;
+   303→    transform: translateY(0);
+   304→  }
+   305→}
+   306→
+   307→@keyframes fadeInLeft {
+   308→  from {
+   309→    opacity: 0;
+   310→    transform: translateX(-24px);
+   311→  }
+   312→  to {
+   313→    opacity: 1;
+   314→    transform: translateX(0);
+   315→  }
+   316→}
+   317→
+   318→@keyframes fadeInRight {
+   319→  from {
+   320→    opacity: 0;
+   321→    transform: translateX(24px);
+   322→  }
+   323→  to {
+   324→    opacity: 1;
+   325→    transform: translateX(0);
+   326→  }
+   327→}
+   328→
+   329→@keyframes slideUp {
+   330→  from { transform: translateY(100%); }
+   331→  to   { transform: translateY(0); }
+   332→}
+   333→
+   334→@keyframes slideDown {
+   335→  from { transform: translateY(-100%); }
+   336→  to   { transform: translateY(0); }
+   337→}
+   338→
+   339→@keyframes scaleIn {
+   340→  from {
+   341→    opacity: 0;
+   342→    transform: scale(0.95);
+   343→  }
+   344→  to {
+   345→    opacity: 1;
+   346→    transform: scale(1);
+   347→  }
+   348→}
+   349→
+   350→@keyframes shimmer {
+   351→  0% {
+   352→    background-position: -200% 0;
+   353→  }
+   354→  100% {
+   355→    background-position: 200% 0;
+   356→  }
+   357→}
+   358→
+   359→@keyframes float {
+   360→  0%, 100% { transform: translateY(0); }
+   361→  50%      { transform: translateY(-8px); }
+   362→}
+   363→
+   364→@keyframes pulse-gold {
+   365→  0%, 100% {
+   366→    box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4);
+   367→  }
+   368→  50% {
+   369→    box-shadow: 0 0 0 12px rgba(201, 169, 110, 0);
+   370→  }
+   371→}
+   372→
+   373→@keyframes marquee {
+   374→  0%   { transform: translateX(0); }
+   375→  100% { transform: translateX(-50%); }
+   376→}
+   377→
+   378→@keyframes border-glow {
+   379→  0%, 100% {
+   380→    border-color: rgba(201, 169, 110, 0.3);
+   381→  }
+   382→  50% {
+   383→    border-color: rgba(201, 169, 110, 0.7);
+   384→  }
+   385→}
+   386→
+   387→@keyframes text-reveal {
+   388→  from {
+   389→    clip-path: inset(0 100% 0 0);
+   390→  }
+   391→  to {
+   392→    clip-path: inset(0 0% 0 0);
+   393→  }
+   394→}
+   395→
+   396→@keyframes line-expand {
+   397→  from { transform: scaleX(0); }
+   398→  to   { transform: scaleX(1); }
+   399→}
+   400→
+   401→@keyframes rotate-slow {
+   402→  from { transform: rotate(0deg); }
+   403→  to   { transform: rotate(360deg); }
+   404→}
+   405→
+   406→@keyframes blur-in {
+   407→  from {
+   408→    opacity: 0;
+   409→    filter: blur(10px);
+   410→  }
+   411→  to {
+   412→    opacity: 1;
+   413→    filter: blur(0);
+   414→  }
+   415→}
+   416→
+   417→@keyframes count-up {
+   418→  from { opacity: 0; transform: translateY(10px); }
+   419→  to   { opacity: 1; transform: translateY(0); }
+   420→}
+   421→
+   422→/* ═══════════════════════════════════════════════════════════
+   423→   UTILITY CLASSES — Luxury Effects
+   424→   ═══════════════════════════════════════════════════════════ */
+   425→
+   426→/* ─── Glassmorphism ───────────────────────────────────────── */
+   427→.glass {
+   428→  background: rgba(250, 250, 250, 0.6);
+   429→  backdrop-filter: blur(20px) saturate(1.2);
+   430→  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+   431→  border: 1px solid rgba(250, 250, 250, 0.3);
+   432→}
+   433→
+   434→.glass-dark {
+   435→  background: rgba(10, 10, 10, 0.6);
+   436→  backdrop-filter: blur(20px) saturate(1.2);
+   437→  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+   438→  border: 1px solid rgba(255, 255, 255, 0.08);
+   439→}
+   440→
+   441→.glass-gold {
+   442→  background: rgba(201, 169, 110, 0.08);
+   443→  backdrop-filter: blur(20px) saturate(1.2);
+   444→  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+   445→  border: 1px solid rgba(201, 169, 110, 0.2);
+   446→}
+   447→
+   448→.glass-subtle {
+   449→  background: rgba(250, 250, 250, 0.4);
+   450→  backdrop-filter: blur(12px);
+   451→  -webkit-backdrop-filter: blur(12px);
+   452→}
+   453→
+   454→.dark .glass {
+   455→  background: rgba(26, 26, 26, 0.6);
+   456→  border-color: rgba(255, 255, 255, 0.06);
+   457→}
+   458→
+   459→.dark .glass-subtle {
+   460→  background: rgba(26, 26, 26, 0.4);
+   461→}
+   462→
+   463→/* ─── Premium Shadows ─────────────────────────────────────── */
+   464→.shadow-luxury-sm { box-shadow: var(--shadow-luxury-sm); }
+   465→.shadow-luxury    { box-shadow: var(--shadow-luxury); }
+   466→.shadow-luxury-md { box-shadow: var(--shadow-luxury-md); }
+   467→.shadow-luxury-lg { box-shadow: var(--shadow-luxury-lg); }
+   468→.shadow-luxury-xl { box-shadow: var(--shadow-luxury-xl); }
+   469→.shadow-gold      { box-shadow: var(--shadow-gold); }
+   470→.shadow-gold-lg   { box-shadow: var(--shadow-gold-lg); }
+   471→.shadow-inset-luxury { box-shadow: var(--shadow-inset-luxury); }
+   472→
+   473→/* Hover shadow lift */
+   474→.shadow-lift {
+   475→  box-shadow: var(--shadow-luxury);
+   476→  transition: box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1), transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+   477→}
+   478→
+   479→.shadow-lift:hover {
+   480→  box-shadow: var(--shadow-luxury-lg);
+   481→  transform: translateY(-4px);
+   482→}
+   483→
+   484→/* ─── Elegant Gradients ───────────────────────────────────── */
+   485→.gradient-gold {
+   486→  background: var(--gradient-gold);
+   487→}
+   488→
+   489→.gradient-gold-subtle {
+   490→  background: var(--gradient-gold-subtle);
+   491→}
+   492→
+   493→.gradient-dark {
+   494→  background: var(--gradient-dark);
+   495→}
+   496→
+   497→.gradient-charcoal {
+   498→  background: var(--gradient-charcoal);
+   499→}
+   500→
+   501→.gradient-fade-black {
+   502→  background: var(--gradient-fade-black);
+   503→}
+   504→
+   505→.gradient-fade-white {
+   506→  background: var(--gradient-fade-white);
+   507→}
+   508→
+   509→/* Text gradient */
+   510→.text-gradient-gold {
+   511→  background: var(--gradient-gold);
+   512→  -webkit-background-clip: text;
+   513→  background-clip: text;
+   514→  -webkit-text-fill-color: transparent;
+   515→}
+   516→
+   517→.text-gradient-gold-subtle {
+   518→  background: var(--gradient-gold-subtle);
+   519→  -webkit-background-clip: text;
+   520→  background-clip: text;
+   521→  -webkit-text-fill-color: transparent;
+   522→}
+   523→
+   524→/* ─── Typography — Editorial Headlines ────────────────────── */
+   525→.font-editorial {
+   526→  font-family: var(--font-playfair);
+   527→  font-weight: 500;
+   528→  letter-spacing: -0.02em;
+   529→  line-height: 1.1;
+   530→}
+   531→
+   532→.font-editorial-lg {
+   533→  font-family: var(--font-playfair);
+   534→  font-weight: 500;
+   535→  letter-spacing: -0.03em;
+   536→  line-height: 1.05;
+   537→}
+   538→
+   539→.font-body-luxury {
+   540→  font-family: var(--font-inter);
+   541→  font-weight: 300;
+   542→  letter-spacing: 0.02em;
+   543→  line-height: 1.7;
+   544→}
+   545→
+   546→.font-label {
+   547→  font-family: var(--font-inter);
+   548→  font-weight: 500;
+   549→  font-size: 0.7rem;
+   550→  letter-spacing: 0.12em;
+   551→  text-transform: uppercase;
+   552→}
+   553→
+   554→.font-label-lg {
+   555→  font-family: var(--font-inter);
+   556→  font-weight: 500;
+   557→  font-size: 0.8rem;
+   558→  letter-spacing: 0.1em;
+   559→  text-transform: uppercase;
+   560→}
+   561→
+   562→.font-overline {
+   563→  font-family: var(--font-inter);
+   564→  font-weight: 600;
+   565→  font-size: 0.65rem;
+   566→  letter-spacing: 0.16em;
+   567→  text-transform: uppercase;
+   568→}
+   569→
+   570→.font-caption {
+   571→  font-family: var(--font-inter);
+   572→  font-weight: 400;
+   573→  font-size: 0.75rem;
+   574→  letter-spacing: 0.04em;
+   575→  color: var(--muted-foreground);
+   576→}
+   577→
+   578→/* Editorial headline sizes (fashion magazine scale) */
+   579→.headline-display {
+   580→  font-family: var(--font-playfair);
+   581→  font-weight: 400;
+   582→  font-size: clamp(3rem, 8vw, 7rem);
+   583→  line-height: 0.95;
+   584→  letter-spacing: -0.04em;
+   585→  text-wrap: balance;
+   586→}
+   587→
+   588→.headline-hero {
+   589→  font-family: var(--font-playfair);
+   590→  font-weight: 400;
+   591→  font-size: clamp(2.5rem, 6vw, 5.5rem);
+   592→  line-height: 1;
+   593→  letter-spacing: -0.03em;
+   594→  text-wrap: balance;
+   595→}
+   596→
+   597→.headline-1 {
+   598→  font-family: var(--font-playfair);
+   599→  font-weight: 500;
+   600→  font-size: clamp(2rem, 4vw, 3.5rem);
+   601→  line-height: 1.1;
+   602→  letter-spacing: -0.02em;
+   603→  text-wrap: balance;
+   604→}
+   605→
+   606→.headline-2 {
+   607→  font-family: var(--font-playfair);
+   608→  font-weight: 500;
+   609→  font-size: clamp(1.5rem, 3vw, 2.5rem);
+   610→  line-height: 1.15;
+   611→  letter-spacing: -0.01em;
+   612→  text-wrap: balance;
+   613→}
+   614→
+   615→.headline-3 {
+   616→  font-family: var(--font-playfair);
+   617→  font-weight: 500;
+   618→  font-size: clamp(1.25rem, 2vw, 1.75rem);
+   619→  line-height: 1.2;
+   620→  letter-spacing: -0.01em;
+   621→}
+   622→
+   623→/* ─── Premium Button Effects ──────────────────────────────── */
+   624→.btn-luxury {
+   625→  position: relative;
+   626→  display: inline-flex;
+   627→  align-items: center;
+   628→  justify-content: center;
+   629→  padding: 0.75rem 2rem;
+   630→  font-family: var(--font-inter);
+   631→  font-weight: 500;
+   632→  font-size: 0.8rem;
+   633→  letter-spacing: 0.1em;
+   634→  text-transform: uppercase;
+   635→  overflow: hidden;
+   636→  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+   637→ border: none;
+   638→  cursor: pointer;
+   639→}
+   640→
+   641→.btn-luxury::before {
+   642→  content: '';
+   643→  position: absolute;
+   644→  inset: 0;
+   645→  background: var(--gradient-gold);
+   646→  opacity: 0;
+   647→  transition: opacity 0.4s ease;
+   648→}
+   649→
+   650→.btn-luxury:hover::before {
+   651→  opacity: 1;
+   652→}
+   653→
+   654→.btn-luxury span {
+   655→  position: relative;
+   656→  z-index: 1;
+   657→}
+   658→
+   659→/* Dark luxury button */
+   660→.btn-luxury-dark {
+   661→  position: relative;
+   662→  display: inline-flex;
+   663→  align-items: center;
+   664→  justify-content: center;
+   665→  padding: 0.75rem 2rem;
+   666→  background: var(--deep-black);
+   667→  color: var(--pure-white);
+   668→  font-family: var(--font-inter);
+   669→  font-weight: 500;
+   670→  font-size: 0.8rem;
+   671→  letter-spacing: 0.1em;
+   672→  text-transform: uppercase;
+   673→  overflow: hidden;
+   674→  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+   675→  border: none;
+   676→  cursor: pointer;
+   677→}
+   678→
+   679→.btn-luxury-dark:hover {
+   680→  background: var(--charcoal);
+   681→  box-shadow: var(--shadow-luxury-md);
+   682→  transform: translateY(-1px);
+   683→}
+   684→
+   685→.dark .btn-luxury-dark {
+   686→  background: var(--pure-white);
+   687→  color: var(--deep-black);
+   688→}
+   689→
+   690→.dark .btn-luxury-dark:hover {
+   691→  background: var(--silver);
+   692→}
+   693→
+   694→/* Outline luxury button */
+   695→.btn-luxury-outline {
+   696→  display: inline-flex;
+   697→  align-items: center;
+   698→  justify-content: center;
+   699→  padding: 0.7rem 1.9rem;
+   700→  background: transparent;
+   701→  border: 1px solid var(--deep-black);
+   702→  color: var(--deep-black);
+   703→  font-family: var(--font-inter);
+   704→  font-weight: 500;
+   705→  font-size: 0.8rem;
+   706→  letter-spacing: 0.1em;
+   707→  text-transform: uppercase;
+   708→  cursor: pointer;
+   709→  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+   710→}
+   711→
+   712→.btn-luxury-outline:hover {
+   713→  background: var(--deep-black);
+   714→  color: var(--pure-white);
+   715→}
+   716→
+   717→.dark .btn-luxury-outline {
+   718→  border-color: var(--pure-white);
+   719→  color: var(--pure-white);
+   720→}
+   721→
+   722→.dark .btn-luxury-outline:hover {
+   723→  background: var(--pure-white);
+   724→  color: var(--deep-black);
+   725→}
+   726→
+   727→/* Gold accent button */
+   728→.btn-luxury-gold {
+   729→  display: inline-flex;
+   730→  align-items: center;
+   731→  justify-content: center;
+   732→  padding: 0.75rem 2rem;
+   733→  background: var(--gradient-gold);
+   734→  color: var(--deep-black);
+   735→  font-family: var(--font-inter);
+   736→  font-weight: 600;
+   737→  font-size: 0.8rem;
+   738→  letter-spacing: 0.1em;
+   739→  text-transform: uppercase;
+   740→  border: none;
+   741→  cursor: pointer;
+   742→  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+   743→  box-shadow: var(--shadow-gold);
+   744→}
+   745→
+   746→.btn-luxury-gold:hover {
+   747→  box-shadow: var(--shadow-gold-lg);
+   748→  transform: translateY(-2px);
+   749→  filter: brightness(1.1);
+   750→}
+   751→
+   752→/* Underline slide button */
+   753→.btn-underline {
+   754→  position: relative;
+   755→  display: inline-flex;
+   756→  align-items: center;
+   757→  gap: 0.5rem;
+   758→  padding: 0.5rem 0;
+   759→  background: none;
+   760→  border: none;
+   761→  font-family: var(--font-inter);
+   762→  font-weight: 500;
+   763→  font-size: 0.8rem;
+   764→  letter-spacing: 0.08em;
+   765→  text-transform: uppercase;
+   766→  color: inherit;
+   767→  cursor: pointer;
+   768→}
+   769→
+   770→.btn-underline::after {
+   771→  content: '';
+   772→  position: absolute;
+   773→  bottom: 0;
+   774→  left: 0;
+   775→  width: 100%;
+   776→  height: 1px;
+   777→  background: currentColor;
+   778→  transform: scaleX(0);
+   779→  transform-origin: right;
+   780→  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+   781→}
+   782→
+   783→.btn-underline:hover::after {
+   784→  transform: scaleX(1);
+   785→  transform-origin: left;
+   786→}
+   787→
+   788→/* ─── Image Hover Effects ─────────────────────────────────── */
+   789→
+   790→/* Smooth zoom on hover */
+   791→.img-zoom {
+   792→  overflow: hidden;
+   793→}
+   794→
+   795→.img-zoom img,
+   796→.img-zoom video {
+   797→  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+   798→}
+   799→
+   800→.img-zoom:hover img,
+   801→.img-zoom:hover video {
+   802→  transform: scale(1.08);
+   803→}
+   804→
+   805→/* Slight zoom */
+   806→.img-zoom-subtle img,
+   807→.img-zoom-subtle video {
+   808→  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+   809→}
+   810→
+   811→.img-zoom-subtle:hover img,
+   812→.img-zoom-subtle:hover video {
+   813→  transform: scale(1.03);
+   814→}
+   815→
+   816→/* Zoom with reveal overlay */
+   817→.img-reveal {
+   818→  position: relative;
+   819→  overflow: hidden;
+   820→}
+   821→
+   822→.img-reveal::after {
+   823→  content: '';
+   824→  position: absolute;
+   825→  inset: 0;
+   826→  background: rgba(10, 10, 10, 0.15);
+   827→  opacity: 0;
+   828→  transition: opacity 0.5s ease;
+   829→  pointer-events: none;
+   830→}
+   831→
+   832→.img-reveal:hover::after {
+   833→  opacity: 1;
+   834→}
+   835→
+   836→.img-reveal img,
+   837→.img-reveal video {
+   838→  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+   839→}
+   840→
+   841→.img-reveal:hover img,
+   842→.img-reveal:hover video {
+   843→  transform: scale(1.06);
+   844→}
+   845→
+   846→/* Grayscale to color */
+   847→.img-grayscale img {
+   848→  filter: grayscale(100%);
+   849→  transition: filter 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+   850→}
+   851→
+   852→.img-grayscale:hover img {
+   853→  filter: grayscale(0%);
+   854→  transform: scale(1.03);
+   855→}
+   856→
+   857→/* Pan effect */
+   858→.img-pan img {
+   859→  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+   860→  will-change: transform;
+   861→}
+   862→
+   863→.img-pan:hover img {
+   864→  transform: scale(1.12) translate(2%, -2%);
+   865→}
+   866→
+   867→/* ─── Shimmer / Skeleton Loading ───────────────────────────── */
+   868→.shimmer {
+   869→  background: linear-gradient(
+   870→    90deg,
+   871→    var(--charcoal-light) 25%,
+   872→    var(--charcoal) 37%,
+   873→    var(--charcoal-light) 63%
+   874→  );
+   875→  background-size: 400% 100%;
+   876→  animation: shimmer 1.8s ease-in-out infinite;
+   877→}
+   878→
+   879→:root .shimmer {
+   880→  background: linear-gradient(
+   881→    90deg,
+   882→    #E4E4E7 25%,
+   883→    #F5F5F5 37%,
+   884→    #E4E4E7 63%
+   885→  );
+   886→  background-size: 400% 100%;
+   887→}
+   888→
+   889→/* ─── Gold Accents & Decorations ──────────────────────────── */
+   890→
+   891→/* Gold divider line */
+   892→.divider-gold {
+   893→  height: 1px;
+   894→  background: var(--gradient-gold-subtle);
+   895→  border: none;
+   896→}
+   897→
+   898→/* Gold border glow animation */
+   899→.border-glow-gold {
+   900→  border: 1px solid rgba(201, 169, 110, 0.3);
+   901→  animation: border-glow 3s ease-in-out infinite;
+   902→}
+   903→
+   904→/* Gold pulse (for CTAs, badges) */
+   905→.pulse-gold {
+   906→  animation: pulse-gold 2s ease-in-out infinite;
+   907→}
+   908→
+   909→/* Gold dot separator */
+   910→.dot-separator-gold::before {
+   911→  content: '◆';
+   912→  color: var(--gold);
+   913→  font-size: 0.5em;
+   914→  margin: 0 0.75em;
+   915→  vertical-align: middle;
+   916→}
+   917→
+   918→/* ─── Animation Utilities ──────────────────────────────────── */
+   919→.animate-fade-in        { animation: fadeIn 0.6s ease-out both; }
+   920→.animate-fade-in-up      { animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   921→.animate-fade-in-down    { animation: fadeInDown 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   922→.animate-fade-in-left    { animation: fadeInLeft 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   923→.animate-fade-in-right   { animation: fadeInRight 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   924→.animate-slide-up        { animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   925→.animate-slide-down      { animation: slideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   926→.animate-scale-in        { animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   927→.animate-float           { animation: float 6s ease-in-out infinite; }
+   928→.animate-pulse-gold      { animation: pulse-gold 2s ease-in-out infinite; }
+   929→.animate-border-glow     { animation: border-glow 3s ease-in-out infinite; }
+   930→.animate-marquee         { animation: marquee 30s linear infinite; }
+   931→.animate-text-reveal     { animation: text-reveal 1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   932→.animate-line-expand     { animation: line-expand 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+   933→.animate-blur-in         { animation: blur-in 0.6s ease-out both; }
+   934→
+   935→/* Staggered delays */
+   936→.delay-100 { animation-delay: 100ms; }
+   937→.delay-200 { animation-delay: 200ms; }
+   938→.delay-300 { animation-delay: 300ms; }
+   939→.delay-400 { animation-delay: 400ms; }
+   940→.delay-500 { animation-delay: 500ms; }
+   941→.delay-600 { animation-delay: 600ms; }
+   942→.delay-700 { animation-delay: 700ms; }
+   943→.delay-800 { animation-delay: 800ms; }
+   944→.delay-1000 { animation-delay: 1000ms; }
+   945→
+   946→/* ─── Layout Utilities ────────────────────────────────────── */
+   947→
+   948→/* Container with elegant max-width */
+   949→.container-luxury {
+   950→  width: 100%;
+   951→  max-width: 1440px;
+   952→  margin-left: auto;
+   953→  margin-right: auto;
+   954→  padding-left: 1.5rem;
+   955→  padding-right: 1.5rem;
+   956→}
+   957→
+   958→@media (min-width: 768px) {
+   959→  .container-luxury {
+   960→    padding-left: 2.5rem;
+   961→    padding-right: 2.5rem;
+   962→  }
+   963→}
+   964→
+   965→@media (min-width: 1024px) {
+   966→  .container-luxury {
+   967→    padding-left: 4rem;
+   968→    padding-right: 4rem;
+   969→  }
+   970→}
+   971→
+   972→/* Section spacing */
+   973→.section-luxury {
+   974→  padding-top: 5rem;
+   975→  padding-bottom: 5rem;
+   976→}
+   977→
+   978→@media (min-width: 768px) {
+   979→  .section-luxury {
+   980→    padding-top: 7rem;
+   981→    padding-bottom: 7rem;
+   982→  }
+   983→}
+   984→
+   985→/* ─── Overlay Utilities ───────────────────────────────────── */
+   986→.overlay-black {
+   987→  position: relative;
+   988→}
+   989→
+   990→.overlay-black::before {
+   991→  content: '';
+   992→  position: absolute;
+   993→  inset: 0;
+   994→  background: rgba(10, 10, 10, 0.5);
+   995→  pointer-events: none;
+   996→  z-index: 1;
+   997→}
+   998→
+   999→.overlay-gradient::before {
+  1000→  content: '';
+  1001→  position: absolute;
+  1002→  inset: 0;
+  1003→  background: linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.7) 100%);
+  1004→  pointer-events: none;
+  1005→  z-index: 1;
+  1006→}
+  1007→
+  1008→/* ─── Transition Utilities ────────────────────────────────── */
+  1009→.transition-luxury {
+  1010→  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  1011→}
+  1012→
+  1013→.transition-luxury-fast {
+  1014→  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  1015→}
+  1016→
+  1017→/* ─── Misc Luxury Touches ─────────────────────────────────── */
+  1018→
+  1019→/* Elegant horizontal rule */
+  1020→.hr-luxury {
+  1021→  border: none;
+  1022→  height: 1px;
+  1023→  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  1024→}
+  1025→
+  1026→/* Gold horizontal rule */
+  1027→.hr-gold {
+  1028→  border: none;
+  1029→  height: 1px;
+  1030→  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  1031→}
+  1032→
+  1033→/* No scrollbar utility (for carousels) */
+  1034→.no-scrollbar {
+  1035→  -ms-overflow-style: none;
+  1036→  scrollbar-width: none;
+  1037→}
+  1038→.no-scrollbar::-webkit-scrollbar {
+  1039→  display: none;
+  1040→}
+  1041→
+  1042→/* Aspect ratio cover for images */
+  1043→.img-cover {
+  1044→  object-fit: cover;
+  1045→  width: 100%;
+  1046→  height: 100%;
+  1047→}
+  1048→
+  1049→/* Truncate with ellipsis */
+  1050→.line-clamp-1 {
+  1051→  display: -webkit-box;
+  1052→  -webkit-line-clamp: 1;
+  1053→  -webkit-box-orient: vertical;
+  1054→  overflow: hidden;
+  1055→}
+  1056→
+  1057→.line-clamp-2 {
+  1058→  display: -webkit-box;
+  1059→  -webkit-line-clamp: 2;
+  1060→  -webkit-box-orient: vertical;
+  1061→  overflow: hidden;
+  1062→}
+  1063→
+  1064→.line-clamp-3 {
+  1065→  display: -webkit-box;
+  1066→  -webkit-line-clamp: 3;
+  1067→  -webkit-box-orient: vertical;
+  1068→  overflow: hidden;
+  1069→}
+  1070→
