@@ -1,0 +1,52 @@
+# MAISON - Luxury Fashion eCommerce Platform
+# Django Backend Dependencies
+
+# Core Framework
+Django>=5.1,<5.2
+djangorestframework>=3.15
+
+# Authentication
+# djangorestframework-simplejwt>=5.3
+
+# Cross-Origin & Filtering
+django-cors-headers>=4.4
+django-filter>=24.2
+
+# Caching & Task Queue
+django-redis>=5.4
+django-celery-beat>=2.6
+celery[redis]>=5.4
+
+# Database
+psycopg2-binary>=2.9
+
+# Image Handling
+Pillow>=10.4
+
+# Cloud Storage
+boto3>=1.35
+
+# Payments
+stripe>=10.8
+razorpay>=1.4
+PayPal-REST-SDK>=1.14
+
+# Search
+django-elasticsearch-dsl>=8.0
+elasticsearch>=8.12
+
+# Configuration & Utilities
+python-decouple>=3.8
+
+# Testing
+pytest>=8.3
+pytest-django>=4.8
+
+# API Documentation
+drfspectacular>=0.27
+
+# Email
+django-anymail>=12.0
+
+# SimpleJWT - pinned for compatibility
+djangorestframework-simplejwt>=5.3

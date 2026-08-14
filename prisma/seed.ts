@@ -95,45 +95,85 @@ async function main() {
     'silk-drape-evening-gown': [
       'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&h=1100&fit=crop',
     ],
     'tailored-wool-blazer': [
       'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1548624149-f9462096e4e2?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&h=1100&fit=crop',
     ],
     'leather-sculptural-heel': [
       'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1596703263926-eb0762ee17e4?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=800&h=1100&fit=crop',
     ],
     'cashmere-wrap-coat': [
       'https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1548624313-0396c75e4b1a?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800&h=1100&fit=crop',
     ],
     'quilted-chain-shoulder-bag': [
       'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&h=1100&fit=crop',
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=800&h=1100&fit=crop',
     ],
     'structured-double-breasted-suit': [
-      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?w=800&h=1100&fit=crop',
     ],
     'minimalist-leather-sneakers': [
       'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&h=1100&fit=crop',
     ],
     'deconstructed-linen-shirt': [
       'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?w=800&h=1100&fit=crop',
     ],
     'heritage-silk-scarf': [
-      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1601924921557-45e8e1af0014?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1583752028088-91e3e9880b46?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=800&h=1100&fit=crop',
     ],
     'ceramic-chronograph-watch': [
       'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&h=1100&fit=crop',
     ],
     'leather-tote-bag': [
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=800&h=1100&fit=crop',
+    ],
+    'embroidered-silk-kimono-jacket': [
+      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1100&fit=crop',
+    ],
+    'ribbed-cashmere-turtleneck': [
+      'https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1614975059251-992f11792571?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1578681994506-b8f463449011?w=800&h=1100&fit=crop',
+    ],
+    'satin-draped-midi-dress': [
+      'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&h=1100&fit=crop',
+    ],
+    'woven-leather-belt': [
+      'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&h=1100&fit=crop',
+    ],
+    'oversized-sunglasses': [
+      'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&h=1100&fit=crop',
+      'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=1100&fit=crop',
+    ],
+    'leather-weekend-bag': [
+      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&h=1100&fit=crop',
       'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=1100&fit=crop',
     ],
