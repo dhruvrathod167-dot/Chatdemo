@@ -1,0 +1,789 @@
+     1→'use client';
+     2→
+     3→import { useState, useEffect, useCallback, useRef } from 'react';
+     4→import {
+     5→  motion,
+     6→  AnimatePresence,
+     7→  useScroll,
+     8→  useMotionValueEvent,
+     9→} from 'framer-motion';
+    10→import { useCartStore } from '@/stores/cart-store';
+    11→import { useWishlistStore } from '@/stores/wishlist-store';
+    12→import { useUIStore } from '@/stores/ui-store';
+    13→import { useHydrated } from '@/hooks/use-hydrated';
+    14→import {
+    15→  Search,
+    16→  Heart,
+    17→  ShoppingBag,
+    18→  User,
+    19→  Menu,
+    20→  X,
+    21→  ChevronDown,
+    22→  ChevronRight,
+    23→  Package,
+    24→  LogOut,
+    25→  Settings,
+    26→  Bell,
+    27→  Star,
+    28→  Eye,
+    29→  Mic,
+    30→  Clock,
+    31→  TrendingUp,
+    32→} from 'lucide-react';
+    33→
+    34→/* ------------------------------------------------------------------ */
+    35→/* Mega Menu Data                                                      */
+    36→/* ------------------------------------------------------------------ */
+    37→const MEGA_MENU_DATA = [
+    38→  {
+    39→    label: 'Women',
+    40→    href: '/category/women',
+    41→    columns: [
+    42→      {
+    43→        title: 'Clothing',
+    44→        links: [
+    45→          { name: 'Dresses', href: '/category/women' },
+    46→          { name: 'Blazers & Coats', href: '/category/women' },
+    47→          { name: 'Tops & Blouses', href: '/category/women' },
+    48→          { name: 'Skirts', href: '/category/women' },
+    49→          { name: 'Knitwear', href: '/category/women' },
+    50→          { name: 'Evening Wear', href: '/category/women' },
+    51→        ],
+    52→      },
+    53→      {
+    54→        title: 'Accessories',
+    55→        links: [
+    56→          { name: 'Handbags', href: '/category/accessories' },
+    57→          { name: 'Jewelry', href: '/category/jewelry' },
+    58→          { name: 'Sunglasses', href: '/category/accessories' },
+    59→          { name: 'Scarves', href: '/category/accessories' },
+    60→          { name: 'Belts', href: '/category/accessories' },
+    61→        ],
+    62→      },
+    63→      {
+    64→        title: 'Shoes',
+    65→        links: [
+    66→          { name: 'Heels', href: '/category/shoes' },
+    67→          { name: 'Flats', href: '/category/shoes' },
+    68→          { name: 'Boots', href: '/category/shoes' },
+    69→          { name: 'Sneakers', href: '/category/shoes' },
+    70→        ],
+    71→      },
+    72→    ],
+    73→    featured: {
+    74→      title: 'New Season',
+    75→      subtitle: 'Autumn/Winter 2026',
+    76→      image: 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&h=500&fit=crop',
+    77→      href: '/category/women',
+    78→    },
+    79→  },
+    80→  {
+    81→    label: 'Men',
+    82→    href: '/category/men',
+    83→    columns: [
+    84→      {
+    85→        title: 'Clothing',
+    86→        links: [
+    87→          { name: 'Suits', href: '/category/men' },
+    88→          { name: 'Shirts', href: '/category/men' },
+    89→          { name: 'Outerwear', href: '/category/men' },
+    90→          { name: 'Trousers', href: '/category/men' },
+    91→          { name: 'Knitwear', href: '/category/men' },
+    92→          { name: 'T-Shirts', href: '/category/men' },
+    93→        ],
+    94→      },
+    95→      {
+    96→        title: 'Accessories',
+    97→        links: [
+    98→          { name: 'Watches', href: '/category/accessories' },
+    99→          { name: 'Ties', href: '/category/accessories' },
+   100→          { name: 'Belts', href: '/category/accessories' },
+   101→          { name: 'Wallets', href: '/category/accessories' },
+   102→        ],
+   103→      },
+   104→      {
+   105→        title: 'Shoes',
+   106→        links: [
+   107→          { name: 'Oxfords', href: '/category/shoes' },
+   108→          { name: 'Loafers', href: '/category/shoes' },
+   109→          { name: 'Boots', href: '/category/shoes' },
+   110→          { name: 'Sneakers', href: '/category/shoes' },
+   111→        ],
+   112→      },
+   113→    ],
+   114→    featured: {
+   115→      title: 'Tailored Essentials',
+   116→      subtitle: 'Modern Masculine Elegance',
+   117→      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop',
+   118→      href: '/category/men',
+   119→    },
+   120→  },
+   121→  {
+   122→    label: 'Accessories',
+   123→    href: '/category/accessories',
+   124→    columns: [
+   125→      {
+   126→        title: 'Bags',
+   127→        links: [
+   128→          { name: 'Tote Bags', href: '/category/bags' },
+   129→          { name: 'Clutches', href: '/category/bags' },
+   130→          { name: 'Crossbody', href: '/category/bags' },
+   131→          { name: 'Travel', href: '/category/bags' },
+   132→        ],
+   133→      },
+   134→      {
+   135→        title: 'Jewelry',
+   136→        links: [
+   137→          { name: 'Necklaces', href: '/category/jewelry' },
+   138→          { name: 'Earrings', href: '/category/jewelry' },
+   139→          { name: 'Bracelets', href: '/category/jewelry' },
+   140→          { name: 'Rings', href: '/category/jewelry' },
+   141→        ],
+   142→      },
+   143→      {
+   144→        title: 'Other',
+   145→        links: [
+   146→          { name: 'Sunglasses', href: '/category/accessories' },
+   147→          { name: 'Watches', href: '/category/accessories' },
+   148→          { name: 'Scarves', href: '/category/accessories' },
+   149→          { name: 'Belts', href: '/category/accessories' },
+   150→        ],
+   151→      },
+   152→    ],
+   153→    featured: {
+   154→      title: 'Statement Pieces',
+   155→      subtitle: 'Complete Your Look',
+   156→      image: 'https://images.unsplash.com/photo-1611923134239-b9be5816e23c?w=400&h=500&fit=crop',
+   157→      href: '/category/accessories',
+   158→    },
+   159→  },
+   160→  {
+   161→    label: 'Jewelry',
+   162→    href: '/category/jewelry',
+   163→    columns: [
+   164→      {
+   165→        title: 'Fine Jewelry',
+   166→        links: [
+   167→          { name: 'Diamonds', href: '/category/jewelry' },
+   168→          { name: 'Gold', href: '/category/jewelry' },
+   169→          { name: 'Pearls', href: '/category/jewelry' },
+   170→          { name: 'Platinum', href: '/category/jewelry' },
+   171→        ],
+   172→      },
+   173→      {
+   174→        title: 'Fashion Jewelry',
+   175→        links: [
+   176→          { name: 'Necklaces', href: '/category/jewelry' },
+   177→          { name: 'Earrings', href: '/category/jewelry' },
+   178→          { name: 'Bracelets', href: '/category/jewelry' },
+   179→          { name: 'Brooches', href: '/category/jewelry' },
+   180→        ],
+   181→      },
+   182→    ],
+   183→    featured: {
+   184→      title: 'Haute Joaillerie',
+   185→      subtitle: 'Exceptional Craftsmanship',
+   186→      image: 'https://images.unsplash.com/photo-1515562141589-67f0d569b6b3?w=400&h=500&fit=crop',
+   187→      href: '/category/jewelry',
+   188→    },
+   189→  },
+   190→];
+   191→
+   192→const QUICK_LINKS = [
+   193→  { label: 'New Arrivals', href: '/shop' },
+   194→  { label: 'Best Sellers', href: '/shop' },
+   195→  { label: 'The Sale', href: '/shop' },
+   196→];
+   197→
+   198→/* ------------------------------------------------------------------ */
+   199→/* Animation Variants                                                  */
+   200→/* ------------------------------------------------------------------ */
+   201→const mobileMenuVariants = {
+   202→  hidden: { opacity: 0 },
+   203→  visible: {
+   204→    opacity: 1,
+   205→    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+   206→  },
+   207→  exit: {
+   208→    opacity: 0,
+   209→    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+   210→  },
+   211→};
+   212→
+   213→const mobileLinkVariants = {
+   214→  hidden: { opacity: 0, y: 30 },
+   215→  visible: (i: number) => ({
+   216→    opacity: 1,
+   217→    y: 0,
+   218→    transition: {
+   219→      delay: 0.15 + i * 0.06,
+   220→      duration: 0.5,
+   221→      ease: [0.22, 1, 0.36, 1],
+   222→    },
+   223→  }),
+   224→  exit: { opacity: 0, y: 15, transition: { duration: 0.2 } },
+   225→};
+   226→
+   227→const megaMenuVariants = {
+   228→  hidden: { opacity: 0, y: -8 },
+   229→  visible: {
+   230→    opacity: 1,
+   231→    y: 0,
+   232→    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+   233→  },
+   234→  exit: {
+   235→    opacity: 0,
+   236→    y: -4,
+   237→    transition: { duration: 0.2, ease: [0.55, 0, 1, 0.45] },
+   238→  },
+   239→};
+   240→
+   241→const accountDropdownVariants = {
+   242→  hidden: { opacity: 0, y: -8, scale: 0.97 },
+   243→  visible: {
+   244→    opacity: 1,
+   245→    y: 0,
+   246→    scale: 1,
+   247→    transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+   248→  },
+   249→  exit: {
+   250→    opacity: 0,
+   251→    y: -4,
+   252→    scale: 0.98,
+   253→    transition: { duration: 0.15, ease: [0.55, 0, 1, 0.45] },
+   254→  },
+   255→};
+   256→
+   257→/* ------------------------------------------------------------------ */
+   258→/* Component                                                           */
+   259→/* ------------------------------------------------------------------ */
+   260→export default function Navbar() {
+   261→  const [scrolled, setScrolled] = useState(false);
+   262→  const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+   263→  const [accountOpen, setAccountOpen] = useState(false);
+   264→  const [notificationOpen, setNotificationOpen] = useState(false);
+   265→  const megaMenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+   266→  const { scrollY } = useScroll();
+   267→
+   268→  const hydrated = useHydrated();
+   269→
+   270→  const cartItemCount = useCartStore((s) => s.getItemCount());
+   271→  const wishlistCount = useWishlistStore((s) => s.getCount());
+   272→  const cartToggle = useCartStore((s) => s.toggleCart);
+   273→  const searchOpen = useUIStore((s) => s.searchOpen);
+   274→  const openSearch = useUIStore((s) => s.openSearch);
+   275→  const mobileMenuOpen = useUIStore((s) => s.mobileMenuOpen);
+   276→  const openMobileMenu = useUIStore((s) => s.openMobileMenu);
+   277→  const closeMobileMenu = useUIStore((s) => s.closeMobileMenu);
+   278→
+   279→  useMotionValueEvent(scrollY, 'change', (latest) => {
+   280→    setScrolled(latest > 40);
+   281→  });
+   282→
+   283→  useEffect(() => {
+   284→    if (mobileMenuOpen) {
+   285→      document.body.style.overflow = 'hidden';
+   286→    } else {
+   287→      document.body.style.overflow = '';
+   288→    }
+   289→    return () => {
+   290→      document.body.style.overflow = '';
+   291→    };
+   292→  }, [mobileMenuOpen]);
+   293→
+   294→  const handleNavClick = useCallback(() => {
+   295→    closeMobileMenu();
+   296→  }, [closeMobileMenu]);
+   297→
+   298→  const handleMegaEnter = useCallback((label: string) => {
+   299→    if (megaMenuTimeoutRef.current) clearTimeout(megaMenuTimeoutRef.current);
+   300→    setActiveMegaMenu(label);
+   301→  }, []);
+   302→
+   303→  const handleMegaLeave = useCallback(() => {
+   304→    megaMenuTimeoutRef.current = setTimeout(() => {
+   305→      setActiveMegaMenu(null);
+   306→    }, 150);
+   307→  }, []);
+   308→
+   309→  const activeMegaData = MEGA_MENU_DATA.find((m) => m.label === activeMegaMenu);
+   310→
+   311→  return (
+   312→    <>
+   313→      {/* Announcement bar */}
+   314→      <div className="fixed top-0 left-0 right-0 z-[55] bg-[#0A0A0A] border-b border-white/5 overflow-hidden">
+   315→        <div className="flex items-center justify-center h-8 gap-6">
+   316→          <span className="font-['Inter'] text-[10px] tracking-[0.15em] uppercase text-white/50 whitespace-nowrap">
+   317→            Complimentary shipping on orders over $500
+   318→          </span>
+   319→          <span className="hidden md:inline text-white/20">|</span>
+   320→          <span className="hidden md:inline font-['Inter'] text-[10px] tracking-[0.15em] uppercase text-[#C9A96E] whitespace-nowrap">
+   321→            New Season AW26 — Now Live
+   322→          </span>
+   323→        </div>
+   324→      </div>
+   325→
+   326→      <motion.header
+   327→        className={`fixed left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'top-8' : 'top-8'}`}
+   328→        initial={false}
+   329→        animate={{
+   330→          backgroundColor: scrolled
+   331→            ? 'rgba(10, 10, 10, 0.85)'
+   332→            : 'rgba(10, 10, 10, 0)',
+   333→          backdropFilter: scrolled ? 'blur(30px) saturate(180%)' : 'blur(0px)',
+   334→        }}
+   335→        style={{
+   336→          WebkitBackdropFilter: scrolled ? 'blur(30px) saturate(180%)' : 'blur(0px)',
+   337→        }}
+   338→      >
+   339→        {/* Border bottom on scroll */}
+   340→        <motion.div
+   341→          className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+   342→          initial={{ opacity: 0 }}
+   343→          animate={{ opacity: scrolled ? 1 : 0 }}
+   344→          transition={{ duration: 0.4 }}
+   345→        />
+   346→
+   347→        <nav className="mx-auto flex h-16 lg:h-[72px] max-w-[1400px] items-center justify-between px-5 lg:px-10">
+   348→          {/* Left: Hamburger (mobile) + Nav Links (desktop) */}
+   349→          <div className="flex items-center gap-1">
+   350→            {/* Mobile hamburger */}
+   351→            <button
+   352→              className="lg:hidden flex items-center justify-center w-10 h-10 text-white/90 hover:text-white transition-colors"
+   353→              onClick={openMobileMenu}
+   354→              aria-label="Open menu"
+   355→            >
+   356→              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+   357→            </button>
+   358→
+   359→            {/* Desktop nav links with mega menu */}
+   360→            <ul className="hidden lg:flex items-center gap-0">
+   361→              {MEGA_MENU_DATA.map((item) => (
+   362→                <li
+   363→                  key={item.label}
+   364→                  className="relative"
+   365→                  onMouseEnter={() => handleMegaEnter(item.label)}
+   366→                  onMouseLeave={handleMegaLeave}
+   367→                >
+   368→                  <a
+   369→                    href={item.href}
+   370→                    className="group relative flex items-center gap-1 px-4 py-5"
+   371→                  >
+   372→                    <span className="font-['Inter'] text-[13px] tracking-[0.1em] uppercase text-white/80 group-hover:text-white transition-colors duration-300">
+   373→                      {item.label}
+   374→                    </span>
+   375→                    <ChevronDown
+   376→                      className={`h-3 w-3 text-white/40 transition-transform duration-300 ${
+   377→                        activeMegaMenu === item.label ? 'rotate-180' : ''
+   378→                      }`}
+   379→                    />
+   380→                    <motion.span
+   381→                      className="absolute bottom-0 left-4 right-4 h-px bg-[#C9A96E] origin-left"
+   382→                      initial={{ scaleX: 0 }}
+   383→                      whileHover={{ scaleX: 1 }}
+   384→                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+   385→                    />
+   386→                  </a>
+   387→                </li>
+   388→              ))}
+   389→
+   390→n              {/* Quick links */}
+   391→              {QUICK_LINKS.map((link) => (
+   392→                <li key={link.label}>
+   393→                  <a
+   394→                    href={link.href}
+   395→                    className={`relative px-3 py-5 group ${
+   396→                      link.label === 'The Sale' ? 'text-red-400/80' : ''
+   397→                    }`}
+   398→                  >
+   399→                    <span className="font-['Inter'] text-[13px] tracking-[0.1em] uppercase text-white/60 group-hover:text-white transition-colors duration-300">
+   400→                      {link.label}
+   401→                    </span>
+   402→                    <motion.span
+   403→                      className="absolute bottom-0 left-3 right-3 h-px bg-[#C9A96E] origin-left"
+   404→                      initial={{ scaleX: 0 }}
+   405→                      whileHover={{ scaleX: 1 }}
+   406→                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+   407→                    />
+   408→                  </a>
+   409→                </li>
+   410→              ))}
+   411→            </ul>
+   412→          </div>
+   413→
+   414→          {/* Center: Logo */}
+   415→          <a
+   416→            href="/"
+   417→            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none z-10"
+   418→          >
+   419→            <span className="font-['Playfair_Display'] text-[22px] lg:text-[26px] font-semibold tracking-[0.15em] text-[#C9A96E]">
+   420→              MAISON
+   421→            </span>
+   422→          </a>
+   423→
+   424→          {/* Right: Actions */}
+   425→          <div className="flex items-center gap-0.5">
+   426→            {/* Search */}
+   427→            <button
+   428→              className="flex items-center justify-center w-10 h-10 text-white/80 hover:text-white transition-colors"
+   429→              onClick={openSearch}
+   430→              aria-label="Search"
+   431→            >
+   432→              <Search className="h-[18px] w-[18px]" />
+   433→            </button>
+   434→
+   435→            {/* Notifications */}
+   436→            <div className="relative">
+   437→              <button
+   438→                className="flex items-center justify-center w-10 h-10 text-white/80 hover:text-white transition-colors"
+   439→                onClick={() => { setNotificationOpen(!notificationOpen); setAccountOpen(false); }}
+   440→                aria-label="Notifications"
+   441→              >
+   442→                <Bell className="h-[18px] w-[18px]" />
+   443→                {hydrated && (
+   444→                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#C9A96E] ring-2 ring-[#0A0A0A]" />
+   445→                )}
+   446→              </button>
+   447→
+   448→              <AnimatePresence>
+   449→                {notificationOpen && (
+   450→                  <>
+   451→                    <div className="fixed inset-0 z-[65]" onClick={() => setNotificationOpen(false)} />
+   452→                    <motion.div
+   453→                      key="notif-dropdown"
+   454→                      variants={accountDropdownVariants}
+   455→                      initial="hidden"
+   456→                      animate="visible"
+   457→                      exit="exit"
+   458→                      className="absolute right-0 top-full mt-2 w-80 bg-[#111]/95 backdrop-blur-2xl border border-white/10 rounded-sm shadow-2xl z-[66] overflow-hidden"
+   459→                    >
+   460→                      <div className="px-5 py-4 border-b border-white/10">
+   461→                        <h3 className="font-['Inter'] text-sm font-medium text-white">Notifications</h3>
+   462→                      </div>
+   463→                      <div className="max-h-80 overflow-y-auto">
+   464→                        {[
+   465→                          { title: 'AW26 Collection Launch', desc: 'Explore the new arrivals', time: '2h ago', unread: true },
+   466→                          { title: 'Exclusive Access', desc: 'Private sale starts tomorrow', time: '5h ago', unread: true },
+   467→                          { title: 'Order Shipped', desc: 'Your order #M-28491 is on the way', time: '1d ago', unread: false },
+   468→                        ].map((n, i) => (
+   469→                          <div
+   470→                            key={i}
+   471→                            className={`flex gap-3 px-5 py-3.5 hover:bg-white/5 transition-colors cursor-pointer ${n.unread ? 'bg-white/[0.02]' : ''}`}
+   472→                          >
+   473→                            {n.unread && (
+   474→                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#C9A96E] flex-shrink-0" />
+   475→                            )}
+   476→                            <div className={n.unread ? '' : 'ml-3'}>
+   477→                              <p className="font-['Inter'] text-sm text-white/90">{n.title}</p>
+   478→                              <p className="font-['Inter'] text-xs text-white/40 mt-0.5">{n.desc}</p>
+   479→                              <p className="font-['Inter'] text-[10px] text-white/25 mt-1 uppercase tracking-wider">{n.time}</p>
+   480→                            </div>
+   481→                          </div>
+   482→                        ))}
+   483→                      </div>
+   484→                      <div className="px-5 py-3 border-t border-white/5">
+   485→                        <button className="font-['Inter'] text-xs text-[#C9A96E] uppercase tracking-widest hover:text-white transition-colors">
+   486→                          View All
+   487→                        </button>
+   488→                      </div>
+   489→                    </motion.div>
+   490→                  </>
+   491→                )}
+   492→              </AnimatePresence>
+   493→            </div>
+   494→
+   495→            {/* Wishlist */}
+   496→            <button
+   497→              className="relative flex items-center justify-center w-10 h-10 text-white/80 hover:text-white transition-colors"
+   498→              aria-label="Wishlist"
+   499→              onClick={() => {}}
+   500→            >
+   501→              <Heart className="h-[18px] w-[18px]" />
+   502→              <AnimatePresence>
+   503→                {hydrated && wishlistCount > 0 && (
+   504→                  <motion.span
+   505→                    key="wishlist-badge"
+   506→                    initial={{ scale: 0, opacity: 0 }}
+   507→                    animate={{ scale: 1, opacity: 1 }}
+   508→                    exit={{ scale: 0, opacity: 0 }}
+   509→                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+   510→                    className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C9A96E] text-[10px] font-semibold text-black font-['Inter']"
+   511→                  >
+   512→                    {wishlistCount > 9 ? '9+' : wishlistCount}
+   513→                  </motion.span>
+   514→                )}
+   515→              </AnimatePresence>
+   516→            </button>
+   517→
+   518→            {/* Cart */}
+   519→            <button
+   520→              className="relative flex items-center justify-center w-10 h-10 text-white/80 hover:text-white transition-colors"
+   521→              onClick={cartToggle}
+   522→              aria-label="Shopping bag"
+   523→            >
+   524→              <ShoppingBag className="h-[18px] w-[18px]" />
+   525→              <AnimatePresence>
+   526→                {hydrated && cartItemCount > 0 && (
+   527→                  <motion.span
+   528→                    key="cart-badge"
+   529→                    initial={{ scale: 0, opacity: 0 }}
+   530→                    animate={{ scale: 1, opacity: 1 }}
+   531→                    exit={{ scale: 0, opacity: 0 }}
+   532→                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+   533→                    className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C9A96E] text-[10px] font-semibold text-black font-['Inter']"
+   534→                  >
+   535→                    {cartItemCount > 9 ? '9+' : cartItemCount}
+   536→                  </motion.span>
+   537→                )}
+   538→              </AnimatePresence>
+   539→            </button>
+   540→
+   541→            {/* User Account */}
+   542→            <div className="relative ml-0.5">
+   543→              <button
+   544→                className={`flex items-center justify-center w-10 h-10 transition-colors ${
+   545→                  accountOpen ? 'text-[#C9A96E]' : 'text-white/80 hover:text-white'
+   546→                }`}
+   547→                onClick={() => { setAccountOpen(!accountOpen); setNotificationOpen(false); }}
+   548→                aria-label="Account"
+   549→              >
+   550→                <User className="h-[18px] w-[18px]" />
+   551→              </button>
+   552→
+   553→              <AnimatePresence>
+   554→                {accountOpen && (
+   555→                  <>
+   556→                    <div className="fixed inset-0 z-[65]" onClick={() => setAccountOpen(false)} />
+   557→                    <motion.div
+   558→                      key="account-dropdown"
+   559→                      variants={accountDropdownVariants}
+   560→                      initial="hidden"
+   561→                      animate="visible"
+   562→                      exit="exit"
+   563→                      className="absolute right-0 top-full mt-2 w-64 bg-[#111]/95 backdrop-blur-2xl border border-white/10 rounded-sm shadow-2xl z-[66] overflow-hidden"
+   564→                    >
+   565→                      {/* User info header */
+   566→                      <div className="px-5 py-4 border-b border-white/10 bg-gradient-to-r from-[#C9A96E]/5 to-transparent">
+   567→                        <div className="flex items-center gap-3">
+   568→                          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+   569→                            <User className="h-4 w-4 text-white/60" />
+   570→                          </div>
+   571→                          <div>
+   572→                            <p className="font-['Inter'] text-sm font-medium text-white">Welcome</p>
+   573→                            <p className="font-['Inter'] text-xs text-white/40">Sign in for the best experience</p>
+   574→                          </div>
+   575→                        </div>
+   576→                      </div>
+   577→
+   578→                      <div className="py-2">
+   579→                        {[
+   580→                          { icon: User, label: 'My Account', href: '#' },
+   581→                          { icon: Package, label: 'Order Tracking', href: '#' },
+   582→                          { icon: Heart, label: 'My Wishlist', href: '#' },
+   583→                          { icon: Star, label: 'Loyalty Points', href: '#' },
+   584→                          { icon: Settings, label: 'Settings', href: '#' },
+   585→                        ].map(({ icon: Icon, label, href }) => (
+   586→                          <a
+   587→                            key={label}
+   588→                            href={href}
+   589→                            className="flex items-center gap-3 px-5 py-2.5 hover:bg-white/5 transition-colors group"
+   590→                          >
+   591→                            <Icon className="h-4 w-4 text-white/40 group-hover:text-[#C9A96E] transition-colors" />
+   592→                            <span className="font-['Inter'] text-sm text-white/70 group-hover:text-white transition-colors">
+   593→                              {label}
+   594→                            </span>
+   595→                            <ChevronRight className="h-3 w-3 text-white/20 ml-auto" />
+   596→                          </a>
+   597→                        ))}
+   598→                      </div>
+   599→
+   600→                      <div className="border-t border-white/10 py-2">
+   601→                        <a
+   602→                          href="#"
+   603→                          className="flex items-center gap-3 px-5 py-2.5 hover:bg-white/5 transition-colors group"
+   604→                        >
+   605→                          <LogOut className="h-4 w-4 text-white/40 group-hover:text-red-400 transition-colors" />
+   606→                          <span className="font-['Inter'] text-sm text-white/70 group-hover:text-white transition-colors">
+   607→                            Sign Out
+   608→                          </span>
+   609→                        </a>
+   610→                      </div>
+   611→                    </motion.div>
+   612→                  </>
+   613→                )}
+   614→              </AnimatePresence>
+   615→            </div>
+   616→          </div>
+   617→        </nav>
+   618→      </motion.header>
+   619→
+   620→      {/* ── Mega Menu Panel ─────────────────────────────────── */}
+   621→      <AnimatePresence>
+   622→        {activeMegaData && (
+   623→          <motion.div
+   624→            key="mega-menu"
+   625→            variants={megaMenuVariants}
+   626→            initial="hidden"
+   627→            animate="visible"
+   628→            exit="exit"
+   629→            className="fixed top-[calc(2rem+4rem+2rem)] lg:top-[calc(2rem+4.5rem)] left-0 right-0 z-[45] bg-[#0d0d0d]/98 backdrop-blur-2xl border-b border-white/[0.06] shadow-2xl"
+   630→            onMouseEnter={() => handleMegaEnter(activeMegaData.label)}
+   631→            onMouseLeave={handleMegaLeave}
+   632→          >
+   633→            <div className="max-w-[1400px] mx-auto px-5 lg:px-10 py-8 lg:py-10">
+   634→              <div className="flex gap-10 lg:gap-16">
+   635→                {/* Link columns */}
+   636→                <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-10">
+   637→                  {activeMegaData.columns.map((col) => (
+   638→                    <div key={col.title}>
+   639→                      <h4 className="font-['Inter'] text-[11px] uppercase tracking-[0.2em] text-[#C9A96E] mb-4 font-medium">
+   640→                        {col.title}
+   641→                      </h4>
+   642→                      <ul className="space-y-2.5">
+   643→                        {col.links.map((link) => (
+   644→                          <li key={link.name}>
+   645→                            <a
+   646→                              href={link.href}
+   647→                              className="font-['Inter'] text-sm text-white/60 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+   648→                            >
+   649→                              <span className="w-0 h-px bg-[#C9A96E] group-hover:w-3 transition-all duration-300" />
+   650→                              {link.name}
+   651→                            </a>
+   652→                          </li>
+   653→                        ))}
+   654→                      </ul>
+   655→                    </div>
+   656→                  ))}
+   657→                </div>
+   658→
+   659→                {/* Featured image */}
+   660→                {activeMegaData.featured && (
+   661→                  <a
+   662→                    href={activeMegaData.featured.href}
+   663→                    className="hidden md:block w-56 lg:w-64 flex-shrink-0 group"
+   664→                  >
+   665→                    <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
+   666→                      <img
+   667→                        src={activeMegaData.featured.image}
+   668→                        alt={activeMegaData.featured.title}
+   669→                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+   670→                      />
+   671→                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+   672→                      <div className="absolute bottom-0 left-0 right-0 p-4">
+   673→                        <p className="font-['Playfair_Display'] text-lg text-white leading-tight">
+   674→                          {activeMegaData.featured.title}
+   675→                        </p>
+   676→                        <p className="font-['Inter'] text-[10px] uppercase tracking-[0.15em] text-white/60 mt-1">
+   677→                          {activeMegaData.featured.subtitle}
+   678→                        </p>
+   679→                        <span className="inline-flex items-center gap-1 font-['Inter'] text-[10px] uppercase tracking-widest text-[#C9A96E] mt-2 group-hover:gap-2 transition-all">
+   680→                          Explore <ChevronRight className="h-3 w-3" />
+   681→                        </span>
+   682→                      </div>
+   683→                    </div>
+   684→                  </a>
+   685→                )}
+   686→              </div>
+   687→            </div>
+   688→          </motion.div>
+   689→        )}
+   690→      </AnimatePresence>
+   691→
+   692→      {/* ── Mobile Menu Overlay ─────────────────────────────── */}
+   693→      <AnimatePresence>
+   694→        {mobileMenuOpen && (
+   695→          <motion.div
+   696→            variants={mobileMenuVariants}
+   697→            initial="hidden"
+   698→            animate="visible"
+   699→            exit="exit"
+   700→            className="fixed inset-0 z-[60] bg-[#0A0A0A] flex flex-col"
+   701→          >
+   702→            {/* Mobile menu header */}
+   703→            <div className="flex items-center justify-between px-5 h-16 border-b border-white/10">
+   704→              <span className="font-['Playfair_Display'] text-lg tracking-[0.15em] text-[#C9A96E]">
+   705→                MAISON
+   706→              </span>
+   707→              <button
+   708→                onClick={closeMobileMenu}
+   709→                className="text-white/60 hover:text-white transition-colors"
+   710→                aria-label="Close menu"
+   711→              >
+   712→                <X className="h-5 w-5" />
+   713→              </button>
+   714→            </div>
+   715→
+   716→            {/* Scrollable content */}
+   717→            <div className="flex-1 overflow-y-auto">
+   718→              <ul className="px-6 py-6">
+   719→                {MEGA_MENU_DATA.map((item, i) => (
+   720→                  <motion.li
+   721→                    key={item.label}
+   722→                    custom={i}
+   723→                    variants={mobileLinkVariants}
+   724→                    initial="hidden"
+   725→                    animate="visible"
+   726→                    exit="exit"
+   727→                  >
+   728→                    <a
+   729→                      href={item.href}
+   730→                      onClick={handleNavClick}
+   731→                      className="flex items-center justify-between py-4 border-b border-white/5"
+   732→                    >
+   733→                      <span className="font-['Playfair_Display'] text-3xl font-light text-white/90">
+   734→                        {item.label}
+   735→                      </span>
+   736→                      <ChevronRight className="h-5 w-5 text-white/20" />
+   737→                    </a>
+   738→                  </motion.li>
+   739→                ))}
+   740→                {QUICK_LINKS.map((link, i) => (
+   741→                  <motion.li
+   742→                    key={link.label}
+   743→                    custom={MEGA_MENU_DATA.length + i}
+   744→                    variants={mobileLinkVariants}
+   745→                    initial="hidden"
+   746→                    animate="visible"
+   747→                    exit="exit"
+   748→                  >
+   749→                    <a
+   750→                      href={link.href}
+   751→                      onClick={handleNavClick}
+   752→                      className={`flex items-center justify-between py-4 border-b border-white/5 ${
+   753→                        link.label === 'The Sale' ? 'text-red-400' : ''
+   754→                      }`}
+   755→                    >
+   756→                      <span className="font-['Playfair_Display'] text-3xl font-light text-white/90">
+   757→                        {link.label}
+   758→                      </span>
+   759→                      <ChevronRight className="h-5 w-5 text-white/20" />
+   760→                    </a>
+   761→                  </motion.li>
+   762→                ))}
+   763→              </ul>
+   764→
+   765→              {/* Mobile account links */}
+   766→              <div className="px-6 py-4 border-t border-white/5">
+   767→                {[
+   768→                  { icon: User, label: 'My Account' },
+   769→                  { icon: Package, label: 'Order Tracking' },
+   770→                  { icon: Heart, label: 'Wishlist' },
+   771→                ].map(({ icon: Icon, label }) => (
+   772→                  <a
+   773→                    key={label}
+   774→                    href="#"
+   775→                    className="flex items-center gap-4 py-3 text-white/50 hover:text-white transition-colors"
+   776→                  >
+   777→                    <Icon className="h-4 w-4" />
+   778→                    <span className="font-['Inter'] text-sm uppercase tracking-widest">{label}</span>
+   779→                  </a>
+   780→                ))}
+   781→              </div>
+   782→            </div>
+   783→          </motion.div>
+   784→        )}
+   785→      </AnimatePresence>
+   786→    </>
+   787→  );
+   788→}
+   789→

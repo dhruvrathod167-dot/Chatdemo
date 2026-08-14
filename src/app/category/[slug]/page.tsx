@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { motion } from 'framer-motion'
 import StoreLayout from '@/components/layout/StoreLayout'
 import ProductGrid, { SkeletonGrid } from '@/components/shared/ProductGrid'
 import type { Product } from '@/types'
@@ -23,6 +24,7 @@ export default function CategoryPage() {
   const slug = (params?.slug as string) || ''
   const meta = CATEGORY_META[slug]
   const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -42,6 +44,25 @@ export default function CategoryPage() {
     return () => { cancelled = true }
   }, [slug])
 
+  // Fetch all products for fallback when category is empty
+  useEffect(() => {
+    let cancelled = false
+    const fetchAll = async () => {
+      try {
+        const res = await fetch('/api/products?limit=50')
+        if (!res.ok) throw new Error('Failed')
+        const data = await res.json()
+        if (!cancelled) setAllProducts(data.products || [])
+      } catch { /* empty */ }
+    }
+    fetchAll()
+    return () => { cancelled = true }
+  }, [])
+
+  // If category has no products, show fallback recommendations
+  const displayProducts = products.length > 0 ? products : allProducts.slice(0, 12)
+  const isShowingFallback = products.length === 0 && allProducts.length > 0
+
   if (!meta) {
     return (
       <StoreLayout>
@@ -50,7 +71,7 @@ export default function CategoryPage() {
           <p className="font-['Inter'] text-gray-500 text-sm mb-8">The collection you are looking for does not exist.</p>
           <div className="flex flex-wrap justify-center gap-4">
             {ALL_CATEGORIES.map((c) => (
-              <Link key={c} href={`/${c}`}
+              <Link key={c} href={`/category/${c}`}
                 className="font-['Inter'] text-xs uppercase tracking-widest px-6 py-3 border border-[#0A0A0A] text-[#0A0A0A] hover:bg-[#0A0A0A] hover:text-white transition-colors duration-300">
                 {c}
               </Link>
@@ -67,12 +88,37 @@ export default function CategoryPage() {
       <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
         <img src={meta.hero} alt={meta.title}
           className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-          <p className="font-['Inter'] text-[10px] tracking-[0.3em] uppercase text-[#C9A96E] mb-4">Collection</p>
-          <h1 className="font-['Playfair_Display'] text-5xl md:text-7xl text-white mb-4">{meta.title}</h1>
-          <p className="font-['Inter'] text-white/60 text-sm max-w-md">{meta.subtitle}</p>
-          <div className="w-12 h-px bg-[#C9A96E] mt-6" />
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-['Inter'] text-[10px] tracking-[0.3em] uppercase text-[#C9A96E] mb-4"
+          >
+            Collection
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="font-['Playfair_Display'] text-5xl md:text-7xl text-white mb-4 font-light"
+          >
+            {meta.title}
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="font-['Inter'] text-white/60 text-sm max-w-md"
+          >
+            {meta.subtitle}
+          </motion.p>
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="w-12 h-px bg-[#C9A96E] mt-6"
+          />
         </div>
       </div>
 
@@ -80,7 +126,7 @@ export default function CategoryPage() {
       <div className="bg-white border-b border-gray-100 px-6 md:px-12 lg:px-24">
         <div className="max-w-7xl mx-auto flex items-center gap-8 py-4 overflow-x-auto">
           {ALL_CATEGORIES.map((c) => (
-            <Link key={c} href={`/${c}`}
+            <Link key={c} href={`/category/${c}`}
               className={`font-['Inter'] text-xs uppercase tracking-widest whitespace-nowrap transition-colors duration-300 pb-1 ${c === slug ? 'text-[#C9A96E] border-b border-[#C9A96E]' : 'text-gray-400 hover:text-[#0A0A0A]'}`}>
               {c}
             </Link>
@@ -88,7 +134,27 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {loading ? <SkeletonGrid /> : <ProductGrid products={products} />}
+      {isShowingFallback && !loading && (
+        <div className="bg-[#C9A96E]/5 border-b border-[#C9A96E]/10">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <p className="font-['Inter'] text-sm text-[#C9A96E]">
+              No pieces found in this collection yet. Showing curated recommendations from our other collections.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <SkeletonGrid />
+      ) : isShowingFallback ? (
+        <ProductGrid
+          products={displayProducts}
+          title="Recommended For You"
+          subtitle="Curated from our finest collections"
+        />
+      ) : (
+        <ProductGrid products={displayProducts} />
+      )}
     </StoreLayout>
   )
 }
