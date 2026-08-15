@@ -1,0 +1,849 @@
+     1→     1→'use client';
+     2→     2→
+     3→     3→import {
+     4→     4→  useState,
+     5→     5→  useEffect,
+     6→     6→  useCallback,
+     7→     7→  useRef,
+     8→     8→} from 'react';
+     9→     9→import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+    10→    10→import { useCartStore } from '@/stores/cart-store';
+    11→    11→import { useWishlistStore } from '@/stores/wishlist-store';
+    12→    12→import { useUIStore } from '@/stores/ui-store';
+    13→    13→import { useHydrated } from '@/hooks/use-hydrated';
+    14→    14→import {
+    15→    15→  Search,
+    16→    16→  Heart,
+    17→    17→  ShoppingBag,
+    18→    18→  User,
+    19→    19→  Menu,
+    20→    20→  X,
+    21→    21→  ChevronRight,
+    22→    22→} from 'lucide-react';
+    23→    23→
+    24→    24→/* ================================================================ */
+    25→    25→/*  Types                                                            */
+    26→    26→/* ================================================================ */
+    27→    27→
+    28→    28→interface Subcategory {
+    29→    29→  label: string;
+    30→    30→  href: string;
+    31→    31→}
+    32→    32→
+    33→    33→interface NavCategory {
+    34→    34→  label: string;
+    35→    35→  href: string;
+    36→    36→  hasMegaMenu: boolean;
+    37→    37→  columns?: { heading: string; links: Subcategory[] }[];
+    38→    38→  featured?: { image: string; alt: string; cta: string; ctaHref: string };
+    39→    39→  subcategories?: Subcategory[];
+    40→    40→}
+    41→    41→
+    42→    42→/* ================================================================ */
+    43→    43→/*  Data                                                             */
+    44→    44→/* ================================================================ */
+    45→    45→
+    46→    46→const ANNOUNCEMENTS = [
+    47→    47→  'Complimentary shipping on orders over $500',
+    48→    48→  'New Season: Spring/Summer 2026 Collection',
+    49→    49→  'Exclusive: Book a private styling appointment',
+    50→    50→  'Complimentary gift wrapping on all orders',
+    51→    51→];
+    52→    52→
+    53→    53→const NAV_LINKS: NavCategory[] = [
+    54→    54→  {
+    55→    55→    label: 'New Arrivals',
+    56→    56→    href: '/shop?sort=newest',
+    57→    57→    hasMegaMenu: false,
+    58→    58→  },
+    59→    59→  {
+    60→    60→    label: 'Women',
+    61→    61→    href: '/category/women',
+    62→    62→    hasMegaMenu: true,
+    63→    63→    columns: [
+    64→    64→      {
+    65→    65→        heading: 'Clothing',
+    66→    66→        links: [
+    67→    67→          { label: 'Dresses', href: '/category/women/dresses' },
+    68→    68→          { label: 'Gowns', href: '/category/women/gowns' },
+    69→    69→          { label: 'Tops', href: '/category/women/tops' },
+    70→    70→          { label: 'Knitwear', href: '/category/women/knitwear' },
+    71→    71→          { label: 'Coats & Jackets', href: '/category/women/coats-jackets' },
+    72→    72→          { label: 'Skirts', href: '/category/women/skirts' },
+    73→    73→          { label: 'Pants', href: '/category/women/pants' },
+    74→    74→        ],
+    75→    75→      },
+    76→    76→      {
+    77→    77→        heading: 'Accessories',
+    78→    78→        links: [
+    79→    79→          { label: 'Bags', href: '/category/women/bags' },
+    80→    80→          { label: 'Shoes', href: '/category/women/shoes' },
+    81→    81→          { label: 'Jewelry', href: '/category/women/jewelry' },
+    82→    82→          { label: 'Scarves', href: '/category/women/scarves' },
+    83→    83→          { label: 'Belts', href: '/category/women/belts' },
+    84→    84→          { label: 'Sunglasses', href: '/category/women/sunglasses' },
+    85→    85→        ],
+    86→    86→      },
+    87→    87→    ],
+    88→    88→    featured: {
+    89→    89→      image: '',
+    90→    90→      alt: 'Women Spring/Summer 2026 Editorial',
+    91→    91→      cta: 'Shop the Edit',
+    92→    92→      ctaHref: '/category/women?sort=newest',
+    93→    93→    },
+    94→    94→  },
+    95→    95→  {
+    96→    96→    label: 'Men',
+    97→    97→    href: '/category/men',
+    98→    98→    hasMegaMenu: true,
+    99→    99→    columns: [
+   100→   100→      {
+   101→   101→        heading: 'Clothing',
+   102→   102→        links: [
+   103→   103→          { label: 'Suits & Blazers', href: '/category/men/suits-blazers' },
+   104→   104→          { label: 'Shirts', href: '/category/men/shirts' },
+   105→   105→          { label: 'Trousers', href: '/category/men/trousers' },
+   106→   106→          { label: 'Knitwear', href: '/category/men/knitwear' },
+   107→   107→          { label: 'Outerwear', href: '/category/men/outerwear' },
+   108→   108→          { label: 'T-Shirts', href: '/category/men/t-shirts' },
+   109→   109→        ],
+   110→   110→      },
+   111→   111→      {
+   112→   112→        heading: 'Accessories',
+   113→   113→        links: [
+   114→   114→          { label: 'Bags', href: '/category/men/bags' },
+   115→   115→          { label: 'Shoes', href: '/category/men/shoes' },
+   116→   116→          { label: 'Watches', href: '/category/men/watches' },
+   117→   117→          { label: 'Belts', href: '/category/men/belts' },
+   118→   118→          { label: 'Ties', href: '/category/men/ties' },
+   119→   119→          { label: 'Cufflinks', href: '/category/men/cufflinks' },
+   120→   120→        ],
+   121→   121→      },
+   122→   122→    ],
+   123→   123→    featured: {
+   124→   124→      image: '',
+   125→   125→      alt: 'Men New Season Editorial',
+   126→   126→      cta: 'New Season',
+   127→   127→      ctaHref: '/category/men?sort=newest',
+   128→   128→    },
+   129→   129→  },
+   130→   130→  {
+   131→   131→    label: 'Bags',
+   132→   132→    href: '/category/bags',
+   133→   133→    hasMegaMenu: false,
+   134→   134→    subcategories: [
+   135→   135→      { label: 'Tote Bags', href: '/category/bags/tote' },
+   136→   136→      { label: 'Shoulder Bags', href: '/category/bags/shoulder' },
+   137→   137→      { label: 'Clutches', href: '/category/bags/clutches' },
+   138→   138→      { label: 'Crossbody', href: '/category/bags/crossbody' },
+   139→   139→      { label: 'Mini Bags', href: '/category/bags/mini' },
+   140→   140→      { label: 'Travel', href: '/category/bags/travel' },
+   141→   141→    ],
+   142→   142→  },
+   143→   143→  {
+   144→   144→    label: 'Shoes',
+   145→   145→    href: '/category/shoes',
+   146→   146→    hasMegaMenu: false,
+   147→   147→    subcategories: [
+   148→   148→      { label: 'Heels', href: '/category/shoes/heels' },
+   149→   149→      { label: 'Flats', href: '/category/shoes/flats' },
+   150→   150→      { label: 'Sneakers', href: '/category/shoes/sneakers' },
+   151→   151→      { label: 'Sandals', href: '/category/shoes/sandals' },
+   152→   152→      { label: 'Boots', href: '/category/shoes/boots' },
+   153→   153→      { label: 'Loafers', href: '/category/shoes/loafers' },
+   154→   154→    ],
+   155→   155→  },
+   156→   156→  {
+   157→   157→    label: 'Jewelry',
+   158→   158→    href: '/category/jewelry',
+   159→   159→    hasMegaMenu: false,
+   160→   160→    subcategories: [
+   161→   161→      { label: 'Necklaces', href: '/category/jewelry/necklaces' },
+   162→   162→      { label: 'Earrings', href: '/category/jewelry/earrings' },
+   163→   163→      { label: 'Bracelets', href: '/category/jewelry/bracelets' },
+   164→   164→      { label: 'Rings', href: '/category/jewelry/rings' },
+   165→   165→      { label: 'Brooches', href: '/category/jewelry/brooches' },
+   166→   166→      { label: 'Fine Jewelry', href: '/category/jewelry/fine' },
+   167→   167→    ],
+   168→   168→  },
+   169→   169→  {
+   170→   170→    label: 'Accessories',
+   171→   171→    href: '/category/accessories',
+   172→   172→    hasMegaMenu: false,
+   173→   173→    subcategories: [
+   174→   174→      { label: 'Scarves & Wraps', href: '/category/accessories/scarves' },
+   175→   175→      { label: 'Belts', href: '/category/accessories/belts' },
+   176→   176→      { label: 'Hats', href: '/category/accessories/hats' },
+   177→   177→      { label: 'Gloves', href: '/category/accessories/gloves' },
+   178→   178→      { label: 'Sunglasses', href: '/category/accessories/sunglasses' },
+   179→   179→      { label: 'Tech Accessories', href: '/category/accessories/tech' },
+   180→   180→    ],
+   181→   181→  },
+   182→   182→];
+   183→   183→
+   184→   184→const LUXURY_EASE = [0.22, 1, 0.36, 1] as const;
+   185→   185→
+   186→   186→/* ================================================================ */
+   187→   187→/*  Framer variants                                                  */
+   188→   188→/* ================================================================ */
+   189→   189→
+   190→   190→const announcementVariants = {
+   191→   191→  enter: (direction: number) => ({
+   192→   192→    y: direction > 0 ? 12 : -12,
+   193→   193→    opacity: 0,
+   194→   194→  }),
+   195→   195→  center: {
+   196→   196→    y: 0,
+   197→   197→    opacity: 1,
+   198→   198→    transition: { duration: 0.45, ease: LUXURY_EASE },
+   199→   199→  },
+   200→   200→  exit: (direction: number) => ({
+   201→   201→    y: direction < 0 ? 12 : -12,
+   202→   202→    opacity: 0,
+   203→   203→    transition: { duration: 0.35, ease: LUXURY_EASE },
+   204→   204→  }),
+   205→   205→};
+   206→   206→
+   207→   207→const megaMenuVariants = {
+   208→   208→  hidden: { opacity: 0, y: -8 },
+   209→   209→  visible: {
+   210→   210→    opacity: 1,
+   211→   211→    y: 0,
+   212→   212→    transition: { duration: 0.4, ease: LUXURY_EASE, staggerChildren: 0.04 },
+   213→   213→  },
+   214→   214→  exit: {
+   215→   215→    opacity: 0,
+   216→   216→    y: -8,
+   217→   217→    transition: { duration: 0.25, ease: LUXURY_EASE },
+   218→   218→  },
+   219→   219→};
+   220→   220→
+   221→   221→const megaMenuItemVariants = {
+   222→   222→  hidden: { opacity: 0, y: 10 },
+   223→   223→  visible: {
+   224→   224→    opacity: 1,
+   225→   225→    y: 0,
+   226→   226→    transition: { duration: 0.35, ease: LUXURY_EASE },
+   227→   227→  },
+   228→   228→};
+   229→   229→
+   230→   230→const dropdownVariants = {
+   231→   231→  hidden: { opacity: 0, y: -6 },
+   232→   232→  visible: {
+   233→   233→    opacity: 1,
+   234→   234→    y: 0,
+   235→   235→    transition: { duration: 0.3, ease: LUXURY_EASE, staggerChildren: 0.03 },
+   236→   236→  },
+   237→   237→  exit: {
+   238→   238→    opacity: 0,
+   239→   239→    y: -6,
+   240→   240→    transition: { duration: 0.2, ease: LUXURY_EASE },
+   241→   241→  },
+   242→   242→};
+   243→   243→
+   244→   244→const dropdownItemVariants = {
+   245→   245→  hidden: { opacity: 0, x: -8 },
+   246→   246→  visible: {
+   247→   247→    opacity: 1,
+   248→   248→    x: 0,
+   249→   249→    transition: { duration: 0.3, ease: LUXURY_EASE },
+   250→   250→  },
+   251→   251→};
+   252→   252→
+   253→   253→const mobileMenuVariants = {
+   254→   254→  hidden: { opacity: 0 },
+   255→   255→  visible: {
+   256→   256→    opacity: 1,
+   257→   257→    transition: { duration: 0.45, ease: LUXURY_EASE },
+   258→   258→  },
+   259→   259→  exit: {
+   260→   260→    opacity: 0,
+   261→   261→    transition: { duration: 0.3, ease: LUXURY_EASE },
+   262→   262→  },
+   263→   263→};
+   264→   264→
+   265→   265→const mobileLinkVariants = {
+   266→   266→  hidden: { opacity: 0, y: 30 },
+   267→   267→  visible: (i: number) => ({
+   268→   268→    opacity: 1,
+   269→   269→    y: 0,
+   270→   270→    transition: {
+   271→   271→      delay: 0.15 + i * 0.07,
+   272→   272→      duration: 0.55,
+   273→   273→      ease: LUXURY_EASE,
+   274→   274→    },
+   275→   275→  }),
+   276→   276→  exit: { opacity: 0, y: 15, transition: { duration: 0.2 } },
+   277→   277→};
+   278→   278→
+   279→   279→const badgeVariants = {
+   280→   280→  initial: { scale: 0, opacity: 0 },
+   281→   281→  animate: { scale: 1, opacity: 1 },
+   282→   282→  exit: { scale: 0, opacity: 0 },
+   283→   283→};
+   284→   284→
+   285→   285→/* ================================================================ */
+   286→   286→/*  Announcement Bar                                                 */
+   287→   287→/* ================================================================ */
+   288→   288→
+   289→   289→function AnnouncementBar() {
+   290→   290→  const [dismissed, setDismissed] = useState(false);
+   291→   291→  const [[current, direction], setCurrent] = useState([0, 1]);
+   292→   292→
+   293→   293→  useEffect(() => {
+   294→   294→    const stored = localStorage.getItem('maison-announcement-dismissed');
+   295→   295→    if (stored === 'true') {
+   296→   296→      setDismissed(true);
+   297→   297→    }
+   298→   298→  }, []);
+   299→   299→
+   300→   300→  useEffect(() => {
+   301→   301→    if (dismissed) return;
+   302→   302→    const interval = setInterval(() => {
+   303→   303→      setCurrent((prev) => {
+   304→   304→        const nextIndex = (prev[0] + 1) % ANNOUNCEMENTS.length;
+   305→   305→        return [nextIndex, 1];
+   306→   306→      });
+   307→   307→    }, 4000);
+   308→   308→    return () => clearInterval(interval);
+   309→   309→  }, [dismissed]);
+   310→   310→
+   311→   311→  const handleDismiss = useCallback(() => {
+   312→   312→    setDismissed(true);
+   313→   313→    localStorage.setItem('maison-announcement-dismissed', 'true');
+   314→   314→  }, []);
+   315→   315→
+   316→   316→  if (dismissed) return null;
+   317→   317→
+   318→   318→  return (
+   319→   319→    <div className="relative h-8 bg-[#0A0A0A] overflow-hidden flex items-center justify-center">
+   320→   320→      <AnimatePresence mode="wait" custom={direction}>
+   321→   321→        <motion.div
+   322→   322→          key={current}
+   323→   323→          custom={direction}
+   324→   324→          variants={announcementVariants}
+   325→   325→          initial="enter"
+   326→   326→          animate="center"
+   327→   327→          exit="exit"
+   328→   328→          className="absolute inset-0 flex items-center justify-center"
+   329→   329→        >
+   330→   330→          <p className="font-['Inter'] text-[10px] uppercase tracking-[0.2em] text-white/60">
+   331→   331→            {ANNOUNCEMENTS[current]}
+   332→   332→          </p>
+   333→   333→        </motion.div>
+   334→   334→      </AnimatePresence>
+   335→   335→
+   336→   336→      <button
+   337→   337→        onClick={handleDismiss}
+   338→   338→        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors duration-300"
+   339→   339→        aria-label="Dismiss announcement"
+   340→   340→      >
+   341→   341→        <X className="h-3 w-3" />
+   342→   342→      </button>
+   343→   343→    </div>
+   344→   344→  );
+   345→   345→}
+   346→   346→
+   347→   347→/* ================================================================ */
+   348→   348→/*  Animated Badge                                                   */
+   349→   349→/* ================================================================ */
+   350→   350→
+   351→   351→function AnimatedBadge({ count }: { count: number }) {
+   352→   352→  return (
+   353→   353→    <AnimatePresence>
+   354→   354→      {count > 0 && (
+   355→   355→        <motion.span
+   356→   356→          key={`badge-${count}`}
+   357→   357→          variants={badgeVariants}
+   358→   358→          initial="initial"
+   359→   359→          animate="animate"
+   360→   360→          exit="exit"
+   361→   361→          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+   362→   362→          className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C9A96E] text-[10px] font-semibold leading-none text-black"
+   363→   363→        >
+   364→   364→          {count > 9 ? '9+' : count}
+   365→   365→        </motion.span>
+   366→   366→      )}
+   367→   367→    </AnimatePresence>
+   368→   368→  );
+   369→   369→}
+   370→   370→
+   371→   371→/* ================================================================ */
+   372→   372→/*  Desktop Nav Link with layoutId underline                         */
+   373→   373→/* ================================================================ */
+   374→   374→
+   375→   375→function NavLink({
+   376→   376→  label,
+   377→   377→  href,
+   378→   378→  isActive,
+   379→   379→  onMouseEnter,
+   380→   380→  onMouseLeave,
+   381→   381→}: {
+   382→   382→  label: string;
+   383→   383→  href: string;
+   384→   384→  isActive: boolean;
+   385→   385→  onMouseEnter?: () => void;
+   386→   386→  onMouseLeave?: () => void;
+   387→   387→}) {
+   388→   388→  return (
+   389→   389→    <a
+   390→   390→      href={href}
+   391→   391→      className="group relative px-3 py-2"
+   392→   392→      onMouseEnter={onMouseEnter}
+   393→   393→      onMouseLeave={onMouseLeave}
+   394→   394→    >
+   395→   395→      <span
+   396→   396→        className={`font-['Inter'] text-xs uppercase tracking-[0.12em] transition-colors duration-300 ${
+   397→   397→          isActive ? 'text-white' : 'text-white/70 group-hover:text-white'
+   398→   398→        }`}
+   399→   399→      >
+   400→   400→        {label}
+   401→   401→      </span>
+   402→   402→      {isActive && (
+   403→   403→        <motion.span
+   404→   404→          layoutId="nav-underline"
+   405→   405→          className="absolute bottom-1 left-3 right-3 h-px bg-[#C9A96E]"
+   406→   406→          transition={{ duration: 0.45, ease: LUXURY_EASE }}
+   407→   407→        />
+   408→   408→      )}
+   409→   409→    </a>
+   410→   410→  );
+   411→   411→}
+   412→   412→
+   413→   413→/* ================================================================ */
+   414→   414→/*  Mega Menu                                                        */
+   415→   415→/* ================================================================ */
+   416→   416→
+   417→   417→function MegaMenuPanel({
+   418→   418→  category,
+   419→   419→}: {
+   420→   420→  category: NavCategory;
+   421→   421→}) {
+   422→   422→  if (!category.columns || !category.featured) return null;
+   423→   423→
+   424→   424→  return (
+   425→   425→    <motion.div
+   426→   426→      variants={megaMenuVariants}
+   427→   427→      initial="hidden"
+   428→   428→      animate="visible"
+   429→   429→      exit="exit"
+   430→   430→      className="absolute left-0 right-0 top-full z-40 bg-[#0A0A0A] border-t border-white/5"
+   431→   431→    >
+   432→   432→      <div className="mx-auto max-w-7xl px-8 py-10">
+   433→   433→        <div className="grid grid-cols-[1fr_1fr_1.1fr] gap-10">
+   434→   434→          {category.columns.map((col) => (
+   435→   435→            <motion.div key={col.heading} variants={megaMenuItemVariants}>
+   436→   436→              <h3 className="font-['Inter'] text-[10px] uppercase tracking-[0.2em] text-[#C9A96E] mb-4">
+   437→   437→                {col.heading}
+   438→   438→              </h3>
+   439→   439→              <ul className="space-y-2.5">
+   440→   440→                {col.links.map((link) => (
+   441→   441→                  <li key={link.label}>
+   442→   442→                    <a
+   443→   443→                      href={link.href}
+   444→   444→                      className="font-['Inter'] text-[13px] text-white/70 hover:text-white transition-colors duration-200"
+   445→   445→                    >
+   446→   446→                      {link.label}
+   447→   447→                    </a>
+   448→   448→                  </li>
+   449→   449→                ))}
+   450→   450→              </ul>
+   451→   451→            </motion.div>
+   452→   452→          ))}
+   453→   453→
+   454→   454→          {/* Featured editorial column */}
+   455→   455→          <motion.div variants={megaMenuItemVariants} className="relative">
+   456→   456→            <div className="relative aspect-[3/2] overflow-hidden bg-gradient-to-br from-white/5 to-white/[0.02]">
+   457→   457→              <div className="absolute inset-0 flex flex-col items-center justify-center">
+   458→   458→                <span className="font-['Playfair_Display'] text-xl text-white/30 mb-1">
+   459→   459→                  {category.label === 'Women' ? 'Spring / Summer' : 'New Season'}
+   460→   460→                </span>
+   461→   461→                <span className="font-['Inter'] text-[10px] uppercase tracking-[0.2em] text-[#C9A96E]/40">
+   462→   462→                  2026
+   463→   463→                </span>
+   464→   464→              </div>
+   465→   465→            </div>
+   466→   466→            <a
+   467→   467→              href={category.featured.ctaHref}
+   468→   468→              className="mt-4 inline-flex items-center gap-1.5 font-['Inter'] text-xs uppercase tracking-[0.15em] text-white/80 hover:text-[#C9A96E] transition-colors duration-300"
+   469→   469→            >
+   470→   470→              {category.featured.cta}
+   471→   471→              <ChevronRight className="h-3 w-3" />
+   472→   472→            </a>
+   473→   473→          </motion.div>
+   474→   474→        </div>
+   475→   475→      </div>
+   476→   476→    </motion.div>
+   477→   477→  );
+   478→   478→}
+   479→   479→
+   480→   480→/* ================================================================ */
+   481→   481→/*  Simple Dropdown                                                  */
+   482→   482→/* ================================================================ */
+   483→   483→
+   484→   484→function SimpleDropdown({
+   485→   485→  subcategories,
+   486→   486→}: {
+   487→   487→  subcategories: Subcategory[];
+   488→   488→}) {
+   489→   489→  return (
+   490→   490→    <motion.div
+   491→   491→      variants={dropdownVariants}
+   492→   492→      initial="hidden"
+   493→   493→      animate="visible"
+   494→   494→      exit="exit"
+   495→   495→      className="absolute left-0 top-full z-40 min-w-[200px] bg-[#0A0A0A] border-t border-white/5 py-6 px-6"
+   496→   496→    >
+   497→   497→      <ul className="space-y-2.5">
+   498→   498→        {subcategories.map((sub) => (
+   499→   499→          <motion.li key={sub.label} variants={dropdownItemVariants}>
+   500→   500→            <a
+   501→   501→              href={sub.href}
+   502→   502→              className="block font-['Inter'] text-[13px] text-white/70 hover:text-white transition-colors duration-200"
+   503→   503→            >
+   504→   504→              {sub.label}
+   505→   505→            </a>
+   506→   506→          </motion.li>
+   507→   507→        ))}
+   508→   508→      </ul>
+   509→   509→    </motion.div>
+   510→   510→  );
+   511→   511→}
+   512→   512→
+   513→   513→/* ================================================================ */
+   514→   514→/*  Mobile Menu                                                      */
+   515→   515→/* ================================================================ */
+   516→   516→
+   517→   517→function MobileMenu({
+   518→   518→  isOpen,
+   519→   519→  onClose,
+   520→   520→}: {
+   521→   521→  isOpen: boolean;
+   522→   522→  onClose: () => void;
+   523→   523→}) {
+   524→   524→  const handleLinkClick = useCallback(() => {
+   525→   525→    onClose();
+   526→   526→  }, [onClose]);
+   527→   527→
+   528→   528→  return (
+   529→   529→    <AnimatePresence>
+   530→   530→      {isOpen && (
+   531→   531→        <motion.div
+   532→   532→          variants={mobileMenuVariants}
+   533→   533→          initial="hidden"
+   534→   534→          animate="visible"
+   535→   535→          exit="exit"
+   536→   536→          className="fixed inset-0 z-[60] bg-[#0A0A0A] flex flex-col"
+   537→   537→        >
+   538→   538→          {/* Gold accent line at top */}
+   539→   539→          <div className="h-px bg-[#C9A96E]/40" />
+   540→   540→
+   541→   541→          {/* Close button */}
+   542→   542→          <div className="flex justify-end px-6 py-5">
+   543→   543→            <button
+   544→   544→              onClick={onClose}
+   545→   545→              className="text-white/60 hover:text-white transition-colors duration-300"
+   546→   546→              aria-label="Close menu"
+   547→   547→            >
+   548→   548→              <X className="h-6 w-6" />
+   549→   549→            </button>
+   550→   550→          </div>
+   551→   551→
+   552→   552→          {/* Centered links */}
+   553→   553→          <nav className="flex-1 flex flex-col items-center justify-center">
+   554→   554→            <ul className="flex flex-col items-center gap-6">
+   555→   555→              {NAV_LINKS.map((link, i) => (
+   556→   556→                <motion.li
+   557→   557→                  key={link.label}
+   558→   558→                  custom={i}
+   559→   559→                  variants={mobileLinkVariants}
+   560→   560→                  initial="hidden"
+   561→   561→                  animate="visible"
+   562→   562→                  exit="exit"
+   563→   563→                >
+   564→   564→                  <a
+   565→   565→                    href={link.href}
+   566→   566→                    onClick={handleLinkClick}
+   567→   567→                    className="font-['Playfair_Display'] text-[40px] font-light text-white/90 hover:text-[#C9A96E] transition-colors duration-300"
+   568→   568→                  >
+   569→   569→                    {link.label}
+   570→   570→                  </a>
+   571→   571→                </motion.li>
+   572→   572→              ))}
+   573→   573→            </ul>
+   574→   574→          </nav>
+   575→   575→
+   576→   576→          {/* Bottom links */}
+   577→   577→          <motion.div
+   578→   578→            initial={{ opacity: 0, y: 20 }}
+   579→   579→            animate={{ opacity: 1, y: 0 }}
+   580→   580→            transition={{ delay: 0.65, duration: 0.5, ease: LUXURY_EASE }}
+   581→   581→            className="pb-12 flex items-center justify-center gap-6 font-['Inter'] text-xs uppercase tracking-[0.2em] text-white/40"
+   582→   582→          >
+   583→   583→            <a
+   584→   584→              href="#"
+   585→   585→              onClick={handleLinkClick}
+   586→   586→              className="hover:text-[#C9A96E] transition-colors duration-300"
+   587→   587→            >
+   588→   588→              Account
+   589→   589→            </a>
+   590→   590→            <span className="text-[#C9A96E]/30">&#183;</span>
+   591→   591→            <a
+   592→   592→              href="#"
+   593→   593→              onClick={handleLinkClick}
+   594→   594→              className="hover:text-[#C9A96E] transition-colors duration-300"
+   595→   595→            >
+   596→   596→              Wishlist
+   597→   597→            </a>
+   598→   598→            <span className="text-[#C9A96E]/30">&#183;</span>
+   599→   599→            <a
+   600→   600→              href="#"
+   601→   601→              onClick={handleLinkClick}
+   602→   602→              className="hover:text-[#C9A96E] transition-colors duration-300"
+   603→   603→            >
+   604→   604→              Contact
+   605→   605→            </a>
+   606→   606→          </motion.div>
+   607→   607→        </motion.div>
+   608→   608→      )}
+   609→   609→    </AnimatePresence>
+   610→   610→  );
+   611→   611→}
+   612→   612→
+   613→   613→/* ================================================================ */
+   614→   614→/*  Main Navbar                                                      */
+   615→   615→/* ================================================================ */
+   616→   616→
+   617→   617→export default function Navbar() {
+   618→   618→  const [scrolled, setScrolled] = useState(false);
+   619→   619→  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+   620→   620→  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+   621→   621→  const { scrollY } = useScroll();
+   622→   622→
+   623→   623→  const hydrated = useHydrated();
+   624→   624→
+   625→   625→  const cartItemCount = useCartStore((s) => s.getItemCount());
+   626→   626→  const wishlistCount = useWishlistStore((s) => s.getCount());
+   627→   627→  const toggleCart = useCartStore((s) => s.toggleCart);
+   628→   628→  const openSearch = useUIStore((s) => s.openSearch);
+   629→   629→  const mobileMenuOpen = useUIStore((s) => s.mobileMenuOpen);
+   630→   630→  const openMobileMenu = useUIStore((s) => s.openMobileMenu);
+   631→   631→  const closeMobileMenu = useUIStore((s) => s.closeMobileMenu);
+   632→   632→
+   633→   633→  /* ---- Scroll detection ---- */
+   634→   634→  useMotionValueEvent(scrollY, 'change', (latest) => {
+   635→   635→    setScrolled(latest > 40);
+   636→   636→  });
+   637→   637→
+   638→   638→  /* ---- Body scroll lock ---- */
+   639→   639→  useEffect(() => {
+   640→   640→    if (mobileMenuOpen) {
+   641→   641→      document.body.style.overflow = 'hidden';
+   642→   642→    } else {
+   643→   643→      document.body.style.overflow = '';
+   644→   644→    }
+   645→   645→    return () => {
+   646→   646→      document.body.style.overflow = '';
+   647→   647→    };
+   648→   648→  }, [mobileMenuOpen]);
+   649→   649→
+   650→   650→  /* ---- Mega menu hover handlers (with 300ms delay) ---- */
+   651→   651→  const handleNavEnter = useCallback((label: string) => {
+   652→   652→    if (hoverTimeoutRef.current) {
+   653→   653→      clearTimeout(hoverTimeoutRef.current);
+   654→   654→      hoverTimeoutRef.current = null;
+   655→   655→    }
+   656→   656→    hoverTimeoutRef.current = setTimeout(() => {
+   657→   657→      setActiveDropdown(label);
+   658→   658→    }, 300);
+   659→   659→  }, []);
+   660→   660→
+   661→   661→  const handleNavLeave = useCallback(() => {
+   662→   662→    if (hoverTimeoutRef.current) {
+   663→   663→      clearTimeout(hoverTimeoutRef.current);
+   664→   664→      hoverTimeoutRef.current = null;
+   665→   665→    }
+   666→   666→    hoverTimeoutRef.current = setTimeout(() => {
+   667→   667→      setActiveDropdown(null);
+   668→   668→    }, 200);
+   669→   669→  }, []);
+   670→   670→
+   671→   671→  const handleDropdownEnter = useCallback(() => {
+   672→   672→    if (hoverTimeoutRef.current) {
+   673→   673→      clearTimeout(hoverTimeoutRef.current);
+   674→   674→      hoverTimeoutRef.current = null;
+   675→   675→    }
+   676→   676→  }, []);
+   677→   677→
+   678→   678→  const handleDropdownLeave = useCallback(() => {
+   679→   679→    if (hoverTimeoutRef.current) {
+   680→   680→      clearTimeout(hoverTimeoutRef.current);
+   681→   681→    }
+   682→   682→    hoverTimeoutRef.current = setTimeout(() => {
+   683→   683→      setActiveDropdown(null);
+   684→   684→    }, 200);
+   685→   685→  }, []);
+   686→   686→
+   687→   687→  /* Cleanup timeout on unmount */
+   688→   688→  useEffect(() => {
+   689→   689→    return () => {
+   690→   690→      if (hoverTimeoutRef.current) {
+   691→   691→        clearTimeout(hoverTimeoutRef.current);
+   692→   692→      }
+   693→   693→    };
+   694→   694→  }, []);
+   695→   695→
+   696→   696→  /* ---- Compute total offset for fixed position ---- */
+   697→   697→  const [announcementVisible, setAnnouncementVisible] = useState(true);
+   698→   698→
+   699→   699→  useEffect(() => {
+   700→   700→    const stored = localStorage.getItem('maison-announcement-dismissed');
+   701→   701→    if (stored === 'true') {
+   702→   702→      setAnnouncementVisible(false);
+   703→   703→    }
+   704→   704→  }, []);
+   705→   705→
+   706→   706→  const topOffset = announcementVisible ? 32 : 0;
+   707→   707→
+   708→   708→  return (
+   709→   709→    <>
+   710→   710→      {/* Announcement Bar */}
+   711→   711→      {announcementVisible && <AnnouncementBar />}
+   712→   712→
+   713→   713→      {/* Main Navbar Header */}
+   714→   714→      <motion.header
+   715→   715→        className="fixed left-0 right-0 z-50"
+   716→   716→        initial={false}
+   717→   717→        animate={{
+   718→   718→          backgroundColor: scrolled
+   719→   719→            ? 'rgba(10, 10, 10, 0.85)'
+   720→   720→            : 'rgba(10, 10, 10, 0)',
+   721→   721→          backdropFilter: scrolled ? 'blur(24px)' : 'blur(0px)',
+   722→   722→        }}
+   723→   723→        transition={{ duration: 0.5, ease: LUXURY_EASE }}
+   724→   724→        style={{
+   725→   725→          top: topOffset,
+   726→   726→          WebkitBackdropFilter: scrolled ? 'blur(24px)' : 'blur(0px)',
+   727→   727→        }}
+   728→   728→      >
+   729→   729→        {/* Subtle bottom border on scroll */}
+   730→   730→        <motion.div
+   731→   731→          className="absolute bottom-0 left-0 right-0 h-px bg-white/5"
+   732→   732→          initial={{ opacity: 0 }}
+   733→   733→          animate={{ opacity: scrolled ? 1 : 0 }}
+   734→   734→          transition={{ duration: 0.5, ease: LUXURY_EASE }}
+   735→   735→        />
+   736→   736→
+   737→   737→        <nav className="mx-auto flex h-16 md:h-[72px] max-w-7xl items-center justify-between px-5 md:px-8">
+   738→   738→          {/* Left: Mobile hamburger + Desktop nav links */}
+   739→   739→          <div className="flex items-center gap-1">
+   740→   740→            {/* Mobile hamburger */}
+   741→   741→            <button
+   742→   742→              className="md:hidden text-white/80 hover:text-white transition-colors duration-300 p-2 -ml-2"
+   743→   743→              onClick={openMobileMenu}
+   744→   744→              aria-label="Open menu"
+   745→   745→            >
+   746→   746→              <Menu className="h-[18px] w-[18px]" />
+   747→   747→            </button>
+   748→   748→
+   749→   749→            {/* Desktop nav links */}
+   750→   750→            <ul className="hidden md:flex items-center gap-0">
+   751→   751→              {NAV_LINKS.map((link) => {
+   752→   752→                const hasDropdown =
+   753→   753→                  link.hasMegaMenu || (link.subcategories && link.subcategories.length > 0);
+   754→   754→                return (
+   755→   755→                  <li
+   756→   756→                    key={link.label}
+   757→   757→                    className="relative"
+   758→   758→                    onMouseEnter={
+   759→   759→                      hasDropdown ? () => handleNavEnter(link.label) : undefined
+   760→   760→                    }
+   761→   761→                    onMouseLeave={
+   762→   762→                      hasDropdown ? handleNavLeave : undefined
+   763→   763→                    }
+   764→   764→                  >
+   765→   765→                    <NavLink
+   766→   766→                      label={link.label}
+   767→   767→                      href={link.href}
+   768→   768→                      isActive={activeDropdown === link.label}
+   769→   769→                      onMouseEnter={
+   770→   770→                        hasDropdown ? () => handleNavEnter(link.label) : undefined
+   771→   771→                      }
+   772→   772→                      onMouseLeave={
+   773→   773→                        hasDropdown ? handleNavLeave : undefined
+   774→   774→                      }
+   775→   775→                    />
+   776→   776→
+   777→   777→                    {/* Dropdown / Mega menu */}
+   778→   778→                    {hasDropdown && activeDropdown === link.label && (
+   779→   779→                      <div
+   780→   780→                        onMouseEnter={handleDropdownEnter}
+   781→   781→                        onMouseLeave={handleDropdownLeave}
+   782→   782→                      >
+   783→   783→                        <AnimatePresence>
+   784→   784→                          {link.hasMegaMenu ? (
+   785→   785→                            <MegaMenuPanel category={link} />
+   786→   786→                          ) : link.subcategories ? (
+   787→   787→                            <SimpleDropdown subcategories={link.subcategories} />
+   788→   788→                          ) : null}
+   789→   789→                        </AnimatePresence>
+   790→   790→                      </div>
+   791→   791→                    )}
+   792→   792→                  </li>
+   793→   793→                );
+   794→   794→              })}
+   795→   795→            </ul>
+   796→   796→          </div>
+   797→   797→
+   798→   798→          {/* Center: Logo */}
+   799→   799→          <a href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none">
+   800→   800→            <motion.span
+   801→   801→              className="font-['Playfair_Display'] text-[28px] font-semibold tracking-wide text-[#C9A96E] inline-block"
+   802→   802→              whileHover={{ letterSpacing: '0.25em' }}
+   803→   803→              transition={{ duration: 0.45, ease: LUXURY_EASE }}
+   804→   804→            >
+   805→   805→              MAISON
+   806→   806→            </motion.span>
+   807→   807→          </a>
+   808→   808→
+   809→   809→          {/* Right: Action icons */}
+   810→   810→          <div className="flex items-center gap-0.5">
+   811→   811→            {/* Search */}
+   812→   812→            <button
+   813→   813→              className="p-2 text-white/80 hover:text-white transition-colors duration-300"
+   814→   814→              onClick={openSearch}
+   815→   815→              aria-label="Search"
+   816→   816→            >
+   817→   817→              <Search className="h-[18px] w-[18px]" />
+   818→   818→            </button>
+   819→   819→
+   820→   820→            {/* Wishlist */}
+   821→   821→            <button className="relative p-2 text-white/80 hover:text-white transition-colors duration-300" aria-label="Wishlist">
+   822→   822→              <Heart className="h-[18px] w-[18px]" />
+   823→   823→              {hydrated && <AnimatedBadge count={wishlistCount} />}
+   824→   824→            </button>
+   825→   825→
+   826→   826→            {/* Shopping bag */}
+   827→   827→            <button
+   828→   828→              className="relative p-2 text-white/80 hover:text-white transition-colors duration-300"
+   829→   829→              onClick={toggleCart}
+   830→   830→              aria-label="Shopping bag"
+   831→   831→            >
+   832→   832→              <ShoppingBag className="h-[18px] w-[18px]" />
+   833→   833→              {hydrated && <AnimatedBadge count={cartItemCount} />}
+   834→   834→            </button>
+   835→   835→
+   836→   836→            {/* User */}
+   837→   837→            <button className="p-2 text-white/80 hover:text-white transition-colors duration-300" aria-label="Account">
+   838→   838→              <User className="h-[18px] w-[18px]" />
+   839→   839→            </button>
+   840→   840→          </div>
+   841→   841→        </nav>
+   842→   842→      </motion.header>
+   843→   843→
+   844→   844→      {/* Mobile Menu Overlay */}
+   845→   845→      <MobileMenu isOpen={mobileMenuOpen} onClose={closeMobileMenu} />
+   846→   846→    </>
+   847→   847→  );
+   848→   848→}
+   849→   849→
