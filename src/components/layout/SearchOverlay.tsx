@@ -126,7 +126,7 @@ export default function SearchOverlay() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  [hasSearched, setHasSearched] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
@@ -198,14 +198,18 @@ export default function SearchOverlay() {
 
   const handleTrendingClick = (term: string) => { handleInputChange(term); };
   const handleHistoryClick = (term: string) => { handleInputChange(term); };
+  const handleHistoryClear = () => {
+    clearSearchHistory();
+    setSearchHistory([]);
+  };
 
   const toggleVoice = useCallback(() => {
     if (voiceActive) { setVoiceActive(false); return; }
     try {
-      const SR = (window as unknown as Record<string, () => { start: () => void; stop: () => void; onresult: (e: { results: { 0: { 0: { transcript: string } } } }) => void }).SpeechRecognition ||
-        (window as unknown as Record<string, () => { start: () => void; stop: () => void; onresult: (e: { results: { 0: { 0: { transcript: string } } } }) => void}).webkitSpeechRecognition;
-      if (!SR) return;
-      const recognition = new SR();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognitionCtor) return;
+      const recognition = new SpeechRecognitionCtor();
       recognition.onresult = (e: { results: { 0: { 0: { transcript: string } } } }) => {
         handleInputChange(e.results[0][0].transcript);
         setVoiceActive(false);
@@ -217,8 +221,6 @@ export default function SearchOverlay() {
       /* voice not available */
     }
   }, [voiceActive, handleInputChange]);
-
-  const filteredSuggestions = query.length >= 2 ? AI_SUGGESTIONS.filter((s) => s.toLowerCase().includes(query.toLowerCase())) : AI_SUGGESTIONS;
 
   return (
     <AnimatePresence>
@@ -243,35 +245,223 @@ export default function SearchOverlay() {
                   value={query}
                   onChange={(e) => handleInputChange(e.target.value)}
                   placeholder="Search collections, designers, pieces..."
-                  className="w-full border-b-2 border-white/20 bg-transparent py-5 pl-14 pr-24 font-[\'Playfair_Display\'] text-2xl md:text-3xl text-white placeholder:text-white/25 outline-none transition-colors duration-300 focus:border-[#C9A96E]/60"
+                  className="w-full border-b-2 border-white/20 bg-transparent py-5 pl-14 pr-24 font-['Playfair_Display'] text-2xl md:text-3xl text-white placeholder:text-white/25 outline-none transition-colors duration-300 focus:border-[#C9A96E]/60"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {voiceSupported && (
                     <button
                       onClick={toggleVoice}
-                      className={\n                        'p-2 rounded-full transition-all duration-300',\n                        voiceActive\n                          ? 'bg-red-500/20 text-red-400'\n                          : 'text-white/30 hover:text-[#C9A96E]',\n                      }
+                      className={
+                        voiceActive
+                          ? 'p-2 rounded-full transition-all duration-300 bg-red-500/20 text-red-400'
+                          : 'p-2 rounded-full transition-all duration-300 text-white/30 hover:text-[#C9A96E]'
+                      }
                       aria-label={voiceActive ? 'Stop voice search' : 'Start voice search'}
                     >
                       {voiceActive ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                    </button>\n                  )}\n                  <button
+                    </button>
+                  )}
+                  <button
                     onClick={closeSearch}
                     className="p-2 text-white/40 hover:text-white transition-colors"
                     aria-label="Close search"
                   >
                     <X className="h-6 w-6" />
-                  </button>\n                </div>\n              </div>\n
+                  </button>
+                </div>
+              </div>
               {/* Voice active indicator */}
-              <AnimatePresence>\n                {voiceActive && (\n                  <motion.div\n                    initial={{ opacity: 0, height: 0 }}\n                    animate={{ opacity: 1, height: 'auto' }}\n                    exit={{ opacity: 0, height: 0 }}\n                    className="flex items-center gap-3 pt-4 overflow-hidden"\n                  >\n                    <div className="flex gap-1">\n                      {[0, 1, 2, 3, 4].map((i) => (\n                        <motion.div\n                          key={i}\n                          className="w-1.5 rounded-full bg-[#C9A96E]"\n                          animate={{ height: [8, 24, 12, 20, 8], opacity: [1, 0.3, 1], transition: { repeat: Infinity, duration: 0.8, delay: i * 0.1, ease: 'easeInOut' } }\n                        />\n                      ))}\n                    </div>\n                    <span className="font-[\'Inter\'] text-sm text-white/50">Listening...</span>\n                  </motion.div>\n                )}\n              </AnimatePresence>\n            </motion.div>\n
+              <AnimatePresence>
+                {voiceActive && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex items-center gap-3 pt-4 overflow-hidden"
+                  >
+                    <div className="flex gap-1">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <motion.div
+                          key={i}
+                          className="w-1.5 rounded-full bg-[#C9A96E]"
+                          animate={{ height: [8, 24, 12, 20, 8], opacity: [1, 0.3, 1], transition: { repeat: Infinity, duration: 0.8, delay: i * 0.1, ease: 'easeInOut' } }}
+                        />
+                      ))}
+                    </div>
+                    <span className="font-['Inter'] text-sm text-white/50">Listening...</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
             {/* Results / Suggestions / Trending */}
             <motion.div variants={resultsVariants} initial="hidden" animate="visible" exit="exit" className="flex-1 overflow-y-auto pb-12 pt-10">
               {/* Loading */}
               {loading && (
-                <div className="flex items-center gap-3 text-white/40 font-[\'Inter\'] text-sm">\n                  <motion.div className="h-1.5 w-1.5 rounded-full bg-[#C9A96E]" animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1 }} />\n                  <motion.div className="h-1.5 w-1.5 rounded-full bg-[#C9A96E]" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} />\n                  <motion.div className="h-1.5 w-1.5 rounded-full bg-[#C9A96E]" animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.3 }} />\n                  <span className="ml-2">Searching...</span>\n                </div>\n              )}\n
-              {/* Results grid */\n              {!loading && results.length > 0 && (\n                <div>\n                  <p className="mb-6 font-[\'Inter\'] text-xs uppercase tracking-[0.2em] text-white/40">\n                    {results.length} result{results.length !== 1 ? 's' : ''}\n                  </p>\n                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">\n                    {results.map((item, i) => (\n                      <motion.button\n                        key={item.id}\n                        custom={i}\n                        variants={cardVariants}\n                        initial="hidden"
+                <div className="flex items-center gap-3 text-white/40 font-['Inter'] text-sm">
+                  <motion.div className="h-1.5 w-1.5 rounded-full bg-[#C9A96E]" animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1 }} />
+                  <motion.div className="h-1.5 w-1.5 rounded-full bg-[#C9A96E]" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} />
+                  <motion.div className="h-1.5 w-1.5 rounded-full bg-[#C9A96E]" animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.3 }} />
+                  <span className="ml-2">Searching...</span>
+                </div>
+              )}
+
+              {/* Results grid */}
+              {!loading && results.length > 0 && (
+                <div>
+                  <p className="mb-6 font-['Inter'] text-xs uppercase tracking-[0.2em] text-white/40">
+                    {results.length} result{results.length !== 1 ? 's' : ''}
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {results.map((item, i) => (
+                      <motion.a
+                        key={item.id}
+                        href={`/product/${item.slug}`}
+                        custom={i}
+                        variants={cardVariants}
+                        initial="hidden"
                         animate="visible"
-                        onClick={closeSearch}\n                        className="group flex gap-4 rounded-lg bg-white/[0.03] p-3 text-left transition-all duration-300 hover:bg-white/[0.07] border border-transparent hover:border-white/10"\n                      >\n                        <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded bg-white/5">\n                          {item.image ? (\n                            <img src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />\n                          ) : (\n                            <div className="flex h-full w-full items-center justify-center">\n                              <Search className="h-4 w-4 text-white/20" />\n                            </div>\n                          )}\n                        </div>\n                        <div className="flex min-w-0 flex-1 flex-col justify-center">\n                          <p className="font-[\'Inter\'] text-sm font-medium text-white/90 truncate">{item.name}</p>\n                          <div className="mt-1 flex items-center gap-2">\n                            {item.brand && <span className="font-[\'Inter\'] text-xs text-[#C9A96E] uppercase tracking-wider truncate">{item.brand}</span>}\n                            {item.category && <span className="font-[\'Inter\'] text-xs text-white/30 truncate">{item.category}</span>}\n                          </div>\n                          <p className="mt-1 font-[\'Inter\'] text-sm font-medium text-white/70">\n                            ${item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n                          </p>\n                        </div>\n                        <ArrowRight className="mt-auto h-4 w-4 flex-shrink-0 self-end text-white/20 transition-colors group-hover:text-[#C9A96E]" />\n                      </motion.button>\n                    ))}\n                  </div>\n                </div>\n              )}\n
-              {/* No results */\n              {!loading && hasSearched && results.length === 0 && query.length >= 2 && (\n                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">\n                  <p className="font-[\'Playfair_Display\'] text-xl text-white/60">No results found</p>\n                  <p className="mt-2 font-\'Inter\'] text-sm text-white/30">Try a different search term or browse our collections</p>\n                </motion.div>\n              )}\n
-              {/* Default state: History + Trending + Categories */\n              {!loading && !hasSearched && query.length < 2 && (\n                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">\n                  {/* Search History */\n                  {searchHistory.length > 0 && (\n                    <div>\n                      <div className="mb-4 flex items-center justify-between">\n                        <div className="flex items-center gap-3">\n                          <Clock className="h-4 w-4 text-white/40" />\n                          <span className="font-[\'Inter\'] text-xs uppercase tracking-[0.2em] text-white/40">Recent</span>\n                        </div>\n                        <button onClick={handleHistoryClear} className="font-[\'Inter\'] text-[10px] uppercase tracking-wider text-white/25 hover:text-white/60 transition-colors">Clear</button>\n                      </div>\n                      <div className="space-y-1">\n                        {searchHistory.map((term, i) => (\n                          <motion.button\n                            key={term}\n                            initial={{ opacity: 0, x: -10 }}\n                            animate={{ opacity: 1, x: 0 }}\n                            transition={{ delay: 0.03 * i, duration: 0.3 }}\n                            onClick={() => handleHistoryClick(term)}\n                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-200 hover:bg-white/[0.05] group"\n                          >\n                            <Clock className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />\n                            <span className="font-[\'Inter\'] text-sm text-white/50 group-hover:text-white/90 transition-colors truncate">{term}</span>\n                            <ArrowRight className="h-3 w-3 flex-shrink-0 ml-auto text-white/10 group-hover:text-[#C9A96E] transition-colors" />\n                          </motion.button>\n                        ))}\n                      </div>\n                    </div>\n                  )}\n
-                  {/* Trending + AI Suggestions + Categories */\n                  <div>\n                    <div className="mb-4 flex items-center gap-3">\n                      <TrendingUp className="h-4 w-4 text-[#C9A96E]" />\n                      <span className="font-[\'Inter\'] text-xs uppercase tracking-[0.2em] text-white/40">Trending</span>\n                    </div>\n                    <div className="flex flex-wrap gap-2">\n                      {TRENDING.map((term, i) => (\n                        <motion.button\n                          key={term}\n                          initial={{ opacity: 0, y: 10 }}\n                          animate={{ opacity: 1, y: 0 }}\n                          transition={{ delay: 0.05 * i, duration: 0.4 }}\n                          onClick={() => handleTrendingClick(term)}\n                          className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-[\'Inter\'] text-sm text-white/60 transition-all duration-200 hover:border-[#C9A96E]/40 hover:text-[#C9A96E] hover:bg-[#C9A96E]/5"\n                        >\n                          {term}\n                        </motion.button>\n                      ))}\n                    </div>\n\n                    {/* AI Suggestions */\n                    <div className="mt-8">\n                      <div className="mb-4 flex items-center gap-3">\n                        <Sparkles className="h-4 w-4 text-[#C9A96E]" />\n                        <span className="font-[\'Inter\'] text-xs uppercase tracking-[0.2em] text-white/40">Style Assistant</span>\n                      </div>\n                      <div className="space-y-1">\n                        {AI_SUGGESTIONS.map((s, i) => (\n                          <motion.button\n                            key={s}\n                            initial={{ opacity: 0, x: -10 }}\n                            animate={{ opacity: 1, x: 0 }}\n                            transition={{ delay: 0.3 + 0.05 * i, duration: 0.3 }}\n                            onClick={() => handleInputChange(s)}\n                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-200 hover:bg-white/[0.05] group"\n                          >\n                            <Sparkles className="h-3.5 w-3.5 text-[#C9A96E]/40 flex-shrink-0" />\n                            <span className="font-[\'Inter\'] text-sm text-white/40 group-hover:text-white/80 transition-colors">{s}</span>\n                          </motion.button>\n                        ))}\n                      </div>\n                    </div>\n\n                    {/* Categories */\n                    <div className="mt-8">\n                      <span className="mb-4 font-[\'Inter\'] text-xs uppercase tracking-[0.2em] text-white/40">Browse Categories</span>\n                      <div className="space-y-1">\n                        {CATEGORIES.map((cat, i) => (\n                          <motion.a\n                            key={cat.name}\n                            href={cat.href}\n                            initial={{ opacity: 0, x: -10 }}\n                            animate={{ opacity: 1, x: 0 }}\n                            transition={{ delay: 0.1 + 0.04 * i, duration: 0.3 }}\n                            onClick={closeSearch}\n                            className="flex items-center gap-3 rounded-lg px-3 py-3 transition-colors duration-200 hover:bg-white/[0.05] group"\n                          >\n                            <cat.icon className="h-4 w-4 text-white/30 group-hover:text-[#C9A96E] transition-colors" />\n                            <span className="font-[\'Inter\'] text-sm text-white/60 group-hover:text-white transition-colors">{cat.name}</span>\n                            <ArrowRight className="h-3 w-3 ml-auto text-white/10 group-hover:text-[#C9A96E] transition-colors" />\n                          </motion.a>\n                        ))}\n                      </div>\n                  </div>\n                </div>\n              )}\n            </motion.div>\n          </div>\n        </motion.div>\n      )}
-    </AnimatePresence>\n  );
+                        onClick={closeSearch}
+                        className="group flex gap-4 rounded-lg bg-white/[0.03] p-3 text-left transition-all duration-300 hover:bg-white/[0.07] border border-transparent hover:border-white/10"
+                      >
+                        <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded bg-white/5">
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <Search className="h-4 w-4 text-white/20" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col justify-center">
+                          <p className="font-['Inter'] text-sm font-medium text-white/90 truncate">{item.name}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            {item.brand && <span className="font-['Inter'] text-xs text-[#C9A96E] uppercase tracking-wider truncate">{item.brand}</span>}
+                            {item.category && <span className="font-['Inter'] text-xs text-white/30 truncate">{item.category}</span>}
+                          </div>
+                          <p className="mt-1 font-['Inter'] text-sm font-medium text-white/70">
+                            {'\$'}{item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        <ArrowRight className="mt-auto h-4 w-4 flex-shrink-0 self-end text-white/20 transition-colors group-hover:text-[#C9A96E]" />
+                      </motion.a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* No results */}
+              {!loading && hasSearched && results.length === 0 && query.length >= 2 && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
+                  <p className="font-['Playfair_Display'] text-xl text-white/60">No results found</p>
+                  <p className="mt-2 font-['Inter'] text-sm text-white/30">Try a different search term or browse our collections</p>
+                </motion.div>
+              )}
+
+              {/* Default state: History + Trending + Categories */}
+              {!loading && !hasSearched && query.length < 2 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                  {/* Search History */}
+                  {searchHistory.length > 0 && (
+                    <div>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Clock className="h-4 w-4 text-white/40" />
+                          <span className="font-['Inter'] text-xs uppercase tracking-[0.2em] text-white/40">Recent</span>
+                        </div>
+                        <button onClick={handleHistoryClear} className="font-['Inter'] text-[10px] uppercase tracking-wider text-white/25 hover:text-white/60 transition-colors">Clear</button>
+                      </div>
+                      <div className="space-y-1">
+                        {searchHistory.map((term, i) => (
+                          <motion.button
+                            key={term}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.03 * i, duration: 0.3 }}
+                            onClick={() => handleHistoryClick(term)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-200 hover:bg-white/[0.05] group"
+                          >
+                            <Clock className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />
+                            <span className="font-['Inter'] text-sm text-white/50 group-hover:text-white/90 transition-colors truncate">{term}</span>
+                            <ArrowRight className="h-3 w-3 flex-shrink-0 ml-auto text-white/10 group-hover:text-[#C9A96E] transition-colors" />
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Trending + AI Suggestions + Categories */}
+                  <div>
+                    <div className="mb-4 flex items-center gap-3">
+                      <TrendingUp className="h-4 w-4 text-[#C9A96E]" />
+                      <span className="font-['Inter'] text-xs uppercase tracking-[0.2em] text-white/40">Trending</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {TRENDING.map((term, i) => (
+                        <motion.button
+                          key={term}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.05 * i, duration: 0.4 }}
+                          onClick={() => handleTrendingClick(term)}
+                          className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-['Inter'] text-sm text-white/60 transition-all duration-200 hover:border-[#C9A96E]/40 hover:text-[#C9A96E] hover:bg-[#C9A96E]/5"
+                        >
+                          {term}
+                        </motion.button>
+                      ))}
+                    </div>
+
+                    {/* AI Suggestions */}
+                    <div className="mt-8">
+                      <div className="mb-4 flex items-center gap-3">
+                        <Sparkles className="h-4 w-4 text-[#C9A96E]" />
+                        <span className="font-['Inter'] text-xs uppercase tracking-[0.2em] text-white/40">Style Assistant</span>
+                      </div>
+                      <div className="space-y-1">
+                        {AI_SUGGESTIONS.map((s, i) => (
+                          <motion.button
+                            key={s}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + 0.05 * i, duration: 0.3 }}
+                            onClick={() => handleInputChange(s)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-200 hover:bg-white/[0.05] group"
+                          >
+                            <Sparkles className="h-3.5 w-3.5 text-[#C9A96E]/40 flex-shrink-0" />
+                            <span className="font-['Inter'] text-sm text-white/40 group-hover:text-white/80 transition-colors">{s}</span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Categories */}
+                    <div className="mt-8">
+                      <span className="mb-4 font-['Inter'] text-xs uppercase tracking-[0.2em] text-white/40 block">Browse Categories</span>
+                      <div className="space-y-1">
+                        {CATEGORIES.map((cat, i) => (
+                          <motion.a
+                            key={cat.name}
+                            href={cat.href}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 + 0.04 * i, duration: 0.3 }}
+                            onClick={closeSearch}
+                            className="flex items-center gap-3 rounded-lg px-3 py-3 transition-colors duration-200 hover:bg-white/[0.05] group"
+                          >
+                            <cat.icon className="h-4 w-4 text-white/30 group-hover:text-[#C9A96E] transition-colors" />
+                            <span className="font-['Inter'] text-sm text-white/60 group-hover:text-white transition-colors">{cat.name}</span>
+                            <ArrowRight className="h-3 w-3 ml-auto text-white/10 group-hover:text-[#C9A96E] transition-colors" />
+                          </motion.a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

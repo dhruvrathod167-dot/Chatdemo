@@ -8,6 +8,7 @@ import { useCartStore } from '@/stores/cart-store'
 import { useWishlistStore } from '@/stores/wishlist-store'
 import { useUIStore } from '@/stores/ui-store'
 import { useHydrated } from '@/hooks/use-hydrated'
+import Link from 'next/link'
 
 const cardVariants = {
   hidden: { y: 60, opacity: 0 },
@@ -16,6 +17,7 @@ const cardVariants = {
     transition: { delay: i * 0.06, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] },
   }),
 }
+
 export default function ProductGrid({ products, title, subtitle }: {
   products: Product[]
   title?: string
@@ -46,6 +48,7 @@ export default function ProductGrid({ products, title, subtitle }: {
     </div>
   )
 }
+
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-60px' })
@@ -58,20 +61,27 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
   const hasImage = product.images && product.images.length > 0
   const hasMultipleImages = product.images && product.images.length > 1
   const [isHovered, setIsHovered] = useState(false)
+  const [currentImage, setCurrentImage] = useState(0)
+  const showActions = isHovered
+
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    const sizes = product.sizes || []
+    const colors = product.colors || []
     addToCart({
       productId: product.id, name: product.name, price: product.price,
       image: hasImage ? product.images[0] : '', quantity: 1,
-      size: product.sizes?.[0], color: product.colors?.[0],
+      size: sizes[0], color: colors[0],
     })
     openCart()
   }, [product, addToCart, openCart, hasImage])
+
   const handleToggleWishlist = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     if (isWishlisted) removeWishlist(product.id)
     else addWishlist({ productId: product.id, name: product.name, price: product.price, image: hasImage ? product.images[0] : '', addedAt: new Date().toISOString() })
   }, [product, isWishlisted, addWishlist, removeWishlist, hasImage])
+
   return (
     <motion.div
       ref={ref}
@@ -80,87 +90,55 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
       animate={isInView ? 'visible' : 'hidden'}
       variants={cardVariants}
       className="group cursor-pointer"
-      onClick={() => setQuickView(product.id)}
       onMouseEnter={() => { setIsHovered(true); setCurrentImage(0) }}
       onMouseLeave={() => { setIsHovered(false); setCurrentImage(0) }}
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-[#F0EFED] mb-3">
-        {hasImage ? (
-          <>
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentImage}
-                src={product.images[1]}
-                alt={`${product.name} alternate`}
-                className="absolute inset-0 w-full h-full object-cover"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isHovered ? 1 : 0 }}
-                transition={{ duration: 0.5 }}
+      <Link href={`/product/${product.slug}`}>
+        <div className="relative aspect-[3/4] overflow-hidden bg-[#F0EFED] mb-3">
+          {hasImage ? (
+            <>
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-            </AnimatePresence>
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300">
-            <ShoppingBag className="w-12 h-12" />
-          </div>
-        )}
+              {hasMultipleImages && (
+                <AnimatePresence mode="wait">
+                  {isHovered && currentImage < product.images!.length && (
+                    <motion.img
+                      key={currentImage}
+                      src={product.images![currentImage]}
+                      alt={`${product.name} alternate`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  )}
+                </AnimatePresence>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300">
+              <ShoppingBag className="w-12 h-12" />
+            </div>
+          )}
 
-        {/* Hover overlay gradient */}
-        <motion.div
-          className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500 flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: showActions ? 1 : 0, duration: 0.4 }}
-        >
           {/* Badges */}
           <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
             {product.bestSeller && (
               <span className="bg-[#C9A96E] text-black text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-[\'Inter\'] font-medium">Best Seller</span>
             )}
             {!product.bestSeller && product.newArrival && (
-              <span className="bg-white text-black text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-\'Inter\'] font-medium">New</span>
+              <span className="bg-white text-black text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-[\'Inter\'] font-medium">New</span>
             )}
             {product.comparePrice && !product.bestSeller && !product.newArrival && (
-              <span className="bg-red-600 text-white text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-\'Inter\'] font-medium">Sale</span>
+              <span className="bg-red-600 text-white text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-[\'Inter\'] font-medium">Sale</span>
             )}
           </div>
 
-          {/* Action buttons */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 p-3 z-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: showActions ? 1 : 0, y: showActions ? 0 : 20, duration: 0.4, delay: 0.05 }}
-          >
-            <div className="flex gap-2">
-              <button
-                onClick={handleAddToCart}
-                className="flex-1 bg-white text-black py-2.5 text-[10px] uppercase tracking-[0.15em] font-['Inter'] font-medium hover:bg-[#C9A96E] hover:text-white transition-all duration-300 cursor-pointer"
-              >Add to Bag</button>
-              <button
-                onClick={(e) => { e.stopPropagation(); setQuickView(product.id) }}
-                className="w-10 bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white hover:text-black transition-all duration-300 flex items-center justify-center cursor-pointer"
-              >
-                <Eye className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Compare button */
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.8, transition: { duration: 0.3 }}
-            onClick={(e) => e.stopPropagation()}
-            className="absolute top-3 right-14 z-10 w-9 h-9 flex items-center justify-center bg-white/90 rounded-full shadow-lg text-black hover:bg-[#C9A96E] hover:text-white transition-all duration-300"
-            aria-label="Compare"
-          >
-            <GitCompareArrows className="w-3.5 h-3.5" />
-          </motion.button>
-
-          {/* Wishlist */}
+          {/* Wishlist button */}
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={handleToggleWishlist}
@@ -176,7 +154,18 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
           </motion.button>
 
-          {/* Image navigation dots */
+          {/* Compare button */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.8, transition: { duration: 0.3 } }}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-3 right-14 z-10 w-9 h-9 flex items-center justify-center bg-white/90 rounded-full shadow-lg text-black hover:bg-[#C9A96E] hover:text-white transition-all duration-300"
+            aria-label="Compare"
+          >
+            <GitCompareArrows className="w-3.5 h-3.5" />
+          </motion.button>
+
+          {/* Image navigation dots */}
           {hasMultipleImages && showActions && (
             <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
               {product.images!.map((_, i) => (
@@ -188,27 +177,45 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
               ))}
             </div>
           )}
+
+          {/* Hover overlay with action buttons */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          >
+            <div className="flex gap-2 z-10">
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 bg-white text-black py-2.5 text-[10px] uppercase tracking-[0.15em] font-[\'Inter\'] font-medium hover:bg-[#C9A96E] hover:text-white transition-all duration-300 cursor-pointer"
+              >Add to Bag</button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setQuickView(product.id) }}
+                className="w-10 bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white hover:text-black transition-all duration-300 flex items-center justify-center cursor-pointer"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Product Info */
+        {/* Product Info */}
         <div className="space-y-1 px-0.5">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#C9A96E] font-['Inter'] font-medium">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#C9A96E] font-[\'Inter\'] font-medium">
             {product.brand?.name || 'MAISON'}
           </p>
-          <h3 className="font-['Playfair_Display'] text-[15px] leading-tight group-hover:text-[#C9A96E] transition-colors duration-300">
+          <h3 className="font-[\'Playfair_Display\'] text-[15px] leading-tight group-hover:text-[#C9A96E] transition-colors duration-300">
             {product.name}
           </h3>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-['Inter'] font-medium text-[#0A0A0A]">
-              ${product.price.toLocaleString()}
+            <span className="text-sm font-[\'Inter\'] font-medium text-[#0A0A0A]">
+              {'\$'}{product.price.toLocaleString()}
             </span>
             {product.comparePrice && (
-              <span className="text-sm text-gray-400 line-through font-['Inter']">
-                ${product.comparePrice.toLocaleString()}
+              <span className="text-sm text-gray-400 line-through font-[\'Inter\']">
+                {'\$'}{product.comparePrice.toLocaleString()}
               </span>
             )}
           </div>
-          {/* Color swatches */
+          {/* Color swatches */}
           {product.colors && product.colors.length > 0 && (
             <div className="flex gap-1.5 pt-1">
               {product.colors.slice(0, 5).map((color) => (
@@ -219,13 +226,15 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
                   title={color}
                 />
               ))}
-              {product.colors.length > 5 && <span className="text-[10px] text-gray-400 font-['Inter']">+{product.colors.length - 5}</span>}
+              {product.colors.length > 5 && <span className="text-[10px] text-gray-400 font-[\'Inter\']">+{product.colors.length - 5}</span>}
             </div>
           )}
         </div>
+      </Link>
     </motion.div>
   )
 }
+
 export function SkeletonGrid() {
   return (
     <div className="py-16 md:py-24 px-6 md:px-12 lg:px-24 bg-[#FAFAFA]">

@@ -1,0 +1,738 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+     4→import { motion, AnimatePresence, useInView } from 'framer-motion'
+     5→import StoreLayout from '@/components/layout/StoreLayout'
+     6→import ProductGrid, { SkeletonGrid } from '@/components/shared/ProductGrid'
+     7→import type { Product } from '@/types'
+     8→import { useCartStore } from '@/stores/cart-store'
+     9→import { useWishlistStore } from '@/stores/wishlist-store'
+    10→import { useUIStore } from '@/stores/ui-store'
+    11→import {
+    12→  SlidersHorizontal,
+    13→  ChevronDown,
+    14→  X,
+    15→  Check,
+    16→  Grid3X3,
+    17→  Grid2X2,
+    18→  List,
+    19→  Heart,
+    20→} from 'lucide-react'
+    21→
+    22→const SORT_OPTIONS = [
+    23→  { label: 'Newest', value: 'newest' },
+    24→  { label: 'Price: Low to High', value: 'price_asc' },
+    25→  { label: 'Price: High to Low', value: 'price_desc' },
+    26→  { label: 'Name A-Z', value: 'name_asc' },
+    27→]
+    28→
+    29→const BRAND_OPTIONS = [
+    30→  'Atelier Maison', 'Casa di Fiori', 'Étoile Paris', 'Nordic Luxe',
+    31→  'Sakura couture', 'The Heritage Co.', 'Velvet & Silk', 'Von Stein',
+    32→]
+    33→
+    34→const COLOR_OPTIONS = [
+    35→  { name: 'Black', hex: '#1a1a1a' },
+    36→  { name: 'White', hex: '#f5f5f5' },
+    37→  { name: 'Navy', hex: '#1e293b' },
+    38→  { name: 'Red', hex: '#dc2626' },
+    39→  { name: 'Burgundy', hex: '#7f1d1d' },
+    40→  { name: 'Brown', hex: '#92400e' },
+    41→  { name: 'Beige', hex: '#d4c5a9' },
+    42→  { name: 'Gold', hex: '#C9A96E' },
+    43→  { name: 'Pink', hex: '#ec4899' },
+    44→  { name: 'Blue', hex: '#3b82f6' },
+    45→  { name: 'Green', hex: '#16a34a' },
+    46→  { name: 'Grey', hex: '#6b7280' },
+    47→]
+    48→
+    49→const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '34', '36', '38', '40', '42', '44']
+    50→const MATERIAL_OPTIONS = ['Silk', 'Cashmere', 'Wool', 'Cotton', 'Leather', 'Suede', 'Linen', 'Denim', 'Velvet']
+    51→const PRICE_RANGES = [
+    52→  { label: 'Under $500', min: 0, max: 500 },
+    53→  { label: '$500 - $1,000', min: 500, max: 1000 },
+    54→  { label: '$1,000 - $2,500', min: 1000, max: 2500 },
+    55→  { label: '$2,500 - $5,000', min: 2500, max: 5000 },
+    56→  { label: 'Over $5,000', min: 5000, max: Infinity },
+    57→]
+    58→
+    59→export default function ShopPage() {
+    60→  const [allProducts, setAllProducts] = useState<Product[]>([])
+    61→  const [loading, setLoading] = useState(true)
+    62→  const [sort, setSort] = useState('newest')
+    63→  const [filtersOpen, setFiltersOpen] = useState(false)
+    64→  const [gridCols, setGridCols] = useState<3 | 4>(4)
+    65→
+    66→  // Filter state
+    67→  const [selectedBrands, setSelectedBrands] = useState<string[]>([])
+    68→  const [selectedColors, setSelectedColors] = useState<string[]>([])
+    69→  const [selectedSizes, setSelectedSizes] = useState<string[]>([])
+    70→  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
+    71→  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null)
+    72→  const [inStockOnly, setInStockOnly] = useState(false)
+    73→
+    74→  // Open filter sections
+    75→  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    76→    brand: true,
+    77→    price: true,
+    78→    color: false,
+    79→    size: false,
+    80→    material: false,
+    81→    availability: false,
+    82→  })
+    83→
+    84→  useEffect(() => {
+    85→    let cancelled = false
+    86→    const fetchProducts = async () => {
+    87→      setLoading(true)
+    88→      try {
+    89→        const res = await fetch(`/api/products?sort=${sort}&limit=50`)
+    90→        if (!res.ok) throw new Error('Failed')
+    91→        const data = await res.json()
+    92→        if (!cancelled) setAllProducts(data.products || [])
+    93→      } catch { /* empty */ }
+    94→      if (!cancelled) setLoading(false)
+    95→    }
+    96→    fetchProducts()
+    97→    return () => { cancelled = true }
+    98→  }, [sort])
+    99→
+   100→  const toggleSection = (section: string) => {
+   101→    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }))
+   102→  }
+   103→
+   104→  const toggleBrand = (brand: string) => {
+   105→    setSelectedBrands((prev) =>
+   106→      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+   107→    )
+   108→  }
+   109→
+   110→  const toggleColor = (color: string) => {
+   111→    setSelectedColors((prev) =>
+   112→      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
+   113→    )
+   114→  }
+   115→
+   116→  const toggleSize = (size: string) => {
+   117→    setSelectedSizes((prev) =>
+   118→      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+   119→    )
+   120→  }
+   121→
+   122→  const toggleMaterial = (material: string) => {
+   123→    setSelectedMaterials((prev) =>
+   124→      prev.includes(material) ? prev.filter((m) => m !== material) : [...prev, material]
+   125→    )
+   126→  }
+   127→
+   128→  const clearAllFilters = () => {
+   129→    setSelectedBrands([])
+   130→    setSelectedColors([])
+   131→    setSelectedSizes([])
+   132→    setSelectedMaterials([])
+   133→    setSelectedPriceRange(null)
+   134→    setInStockOnly(false)
+   135→  }
+   136→
+   137→  const activeFilterCount = useMemo(() => {
+   138→    let count = 0
+   139→    if (selectedBrands.length > 0) count++
+   140→    if (selectedColors.length > 0) count++
+   141→    if (selectedSizes.length > 0) count++
+   142→    if (selectedMaterials.length > 0) count++
+   143→    if (selectedPriceRange !== null) count++
+   144→    if (inStockOnly) count++
+   145→    return count
+   146→  }, [selectedBrands, selectedColors, selectedSizes, selectedMaterials, selectedPriceRange, inStockOnly])
+   147→
+   148→  // Apply filters
+   149→  const filteredProducts = useMemo(() => {
+   150→    let products = [...allProducts]
+   151→
+   152→    if (selectedBrands.length > 0) {
+   153→      products = products.filter((p) => p.brand?.name && selectedBrands.includes(p.brand.name))
+   154→    }
+   155→
+   156→    if (selectedColors.length > 0) {
+   157→      products = products.filter((p) =>
+   158→        p.colors?.some((c) => selectedColors.includes(c))
+   159→      )
+   160→    }
+   161→
+   162→    if (selectedSizes.length > 0) {
+   163→      products = products.filter((p) =>
+   164→        p.sizes?.some((s) => selectedSizes.includes(s))
+   165→      )
+   166→    }
+   167→
+   168→    if (selectedMaterials.length > 0) {
+   169→      products = products.filter((p) =>
+   170→        p.material && selectedMaterials.some((m) => p.material?.toLowerCase().includes(m.toLowerCase()))
+   171→      )
+   172→    }
+   173→
+   174→    if (selectedPriceRange !== null) {
+   175→      const range = PRICE_RANGES[selectedPriceRange]
+   176→      products = products.filter((p) => p.price >= range.min && p.price <= range.max)
+   177→    }
+   178→
+   179→    if (inStockOnly) {
+   180→      products = products.filter((p) => p.stock > 0)
+   181→    }
+   182→
+   183→    // Sort
+   184→    switch (sort) {
+   185→      case 'price_asc':
+   186→        products.sort((a, b) => a.price - b.price)
+   187→        break
+   188→      case 'price_desc':
+   189→        products.sort((a, b) => b.price - a.price)
+   190→        break
+   191→      case 'name_asc':
+   192→        products.sort((a, b) => a.name.localeCompare(b.name))
+   193→        break
+   194→      default:
+   195→        products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+   196→    }
+   197→
+   198→    return products
+   199→  }, [allProducts, sort, selectedBrands, selectedColors, selectedSizes, selectedMaterials, selectedPriceRange, inStockOnly])
+   200→
+   201→  const FilterSidebar = () => (
+   202→    <div className="space-y-6">
+   203→      {/* Header */}
+   204→      <div className="flex items-center justify-between">
+   205→        <h3 className="font-['Inter'] text-xs uppercase tracking-[0.2em] text-[#0A0A0A] font-semibold">
+   206→          Filters
+   207→        </h3>
+   208→        {activeFilterCount > 0 && (
+   209→          <button
+   210→            onClick={clearAllFilters}
+   211→            className="font-['Inter'] text-[10px] uppercase tracking-wider text-[#C9A96E] hover:text-black transition-colors"
+   212→          >
+   213→            Clear All ({activeFilterCount})
+   214→          </button>
+   215→        )}
+   216→      </div>
+   217→
+   218→      {/* Active filter pills */}
+   219→      <AnimatePresence>
+   220→        {activeFilterCount > 0 && (
+   221→          <motion.div
+   222→            initial={{ opacity: 0, height: 0 }}
+   223→            animate={{ opacity: 1, height: 'auto' }}
+   224→            exit={{ opacity: 0, height: 0 }}
+   225→            className="flex flex-wrap gap-1.5"
+   226→          >
+   227→            {selectedBrands.map((b) => (
+   228→              <FilterPill key={b} label={b} onRemove={() => toggleBrand(b)} />
+   229→            ))}
+   230→            {selectedColors.map((c) => (
+   231→              <FilterPill key={c} label={c} onRemove={() => toggleColor(c)} />
+   232→            ))}
+   233→            {selectedSizes.map((s) => (
+   234→              <FilterPill key={s} label={s} onRemove={() => toggleSize(s)} />
+   235→            ))}
+   236→            {selectedMaterials.map((m) => (
+   237→              <FilterPill key={m} label={m} onRemove={() => toggleMaterial(m)} />
+   238→            ))}
+   239→            {selectedPriceRange !== null && (
+   240→              <FilterPill
+   241→                label={PRICE_RANGES[selectedPriceRange].label}
+   242→                onRemove={() => setSelectedPriceRange(null)}
+   243→              />
+   244→            )}
+   245→            {inStockOnly && (
+   246→              <FilterPill label="In Stock" onRemove={() => setInStockOnly(false)} />
+   247→            )}
+   248→          </motion.div>
+   249→        )}
+   250→      </AnimatePresence>
+   251→
+   252→      {/* Brand Filter */}
+   253→      <FilterSection title="Brand" section="brand" open={openSections.brand} onToggle={() => toggleSection('brand')}>
+   254→        <div className="space-y-2">
+   255→          {BRAND_OPTIONS.map((brand) => (
+   256→            <label
+   257→              key={brand}
+   258→              className="flex items-center gap-3 cursor-pointer group py-0.5"
+   259→            >
+   260→              <div
+   261→                className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all duration-200 ${
+   262→                  selectedBrands.includes(brand)
+   263→                    ? 'bg-[#0A0A0A] border-[#0A0A0A]'
+   264→                    : 'border-gray-300 group-hover:border-gray-500'
+   265→                }`}
+   266→                onClick={() => toggleBrand(brand)}
+   267→              >
+   268→                {selectedBrands.includes(brand) && (
+   269→                  <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+   270→                )}
+   271→              </div>
+   272→              <span className="font-['Inter'] text-sm text-gray-700 group-hover:text-black transition-colors">
+   273→                {brand}
+   274→              </span>
+   275→            </label>
+   276→          ))}
+   277→        </div>
+   278→      </FilterSection>
+   279→
+   280→      {/* Price Filter */}
+   281→      <FilterSection title="Price" section="price" open={openSections.price} onToggle={() => toggleSection('price')}>
+   282→        <div className="space-y-2">
+   283→          {PRICE_RANGES.map((range, i) => (
+   284→            <label
+   285→              key={range.label}
+   286→              className="flex items-center gap-3 cursor-pointer group py-0.5"
+   287→            >
+   288→              <div
+   289→                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+   290→                  selectedPriceRange === i
+   291→                    ? 'border-[#C9A96E]'
+   292→                    : 'border-gray-300 group-hover:border-gray-500'
+   293→                }`}
+   294→                onClick={() => setSelectedPriceRange(selectedPriceRange === i ? null : i)}
+   295→              >
+   296→                {selectedPriceRange === i && (
+   297→                  <div className="w-2 h-2 rounded-full bg-[#C9A96E]" />
+   298→                )}
+   299→              </div>
+   300→              <span className="font-['Inter'] text-sm text-gray-700 group-hover:text-black transition-colors">
+   301→                {range.label}
+   302→              </span>
+   303→            </label>
+   304→          ))}
+   305→        </div>
+   306→      </FilterSection>
+   307→
+   308→      {/* Color Filter */}
+   309→      <FilterSection title="Color" section="color" open={openSections.color} onToggle={() => toggleSection('color')}>
+   310→        <div className="flex flex-wrap gap-2.5">
+   311→          {COLOR_OPTIONS.map((color) => (
+   312→            <button
+   313→              key={color.name}
+   314→              onClick={() => toggleColor(color.name)}
+   315→              title={color.name}
+   316→              className={`relative w-7 h-7 rounded-full border-2 transition-all duration-200 ${
+   317→                selectedColors.includes(color.name)
+   318→                  ? 'border-[#0A0A0A] scale-110'
+   319→                  : 'border-gray-200 hover:border-gray-400'
+   320→              }`}
+   321→            >
+   322→              <span
+   323→                className="absolute inset-1 rounded-full"
+   324→                style={{ backgroundColor: color.hex }}
+   325→              />
+   326→              {selectedColors.includes(color.name) && (
+   327→                <Check className={`absolute inset-0 m-auto w-3 h-3 ${color.name === 'White' || color.name === 'Beige' ? 'text-black' : 'text-white'}`} strokeWidth={3} />
+   328→              )}
+   329→            </button>
+   330→          ))}
+   331→        </div>
+   332→      </FilterSection>
+   333→
+   334→      {/* Size Filter */}
+   335→      <FilterSection title="Size" section="size" open={openSections.size} onToggle={() => toggleSection('size')}>
+   336→        <div className="flex flex-wrap gap-1.5">
+   337→          {SIZE_OPTIONS.map((size) => (
+   338→            <button
+   339→              key={size}
+   340→              onClick={() => toggleSize(size)}
+   341→              className={`min-w-[40px] h-9 px-2 text-center font-['Inter'] text-xs border transition-all duration-200 ${
+   342→                selectedSizes.includes(size)
+   343→                  ? 'bg-[#0A0A0A] text-white border-[#0A0A0A]'
+   344→                  : 'border-gray-200 text-gray-700 hover:border-gray-500'
+   345→              }`}
+   346→            >
+   347→              {size}
+   348→            </button>
+   349→          ))}
+   350→        </div>
+   351→      </FilterSection>
+   352→
+   353→      {/* Material Filter */}
+   354→      <FilterSection title="Material" section="material" open={openSections.material} onToggle={() => toggleSection('material')}>
+   355→        <div className="flex flex-wrap gap-1.5">
+   356→          {MATERIAL_OPTIONS.map((material) => (
+   357→            <button
+   358→              key={material}
+   359→              onClick={() => toggleMaterial(material)}
+   360→              className={`h-8 px-3 text-center font-['Inter'] text-xs border transition-all duration-200 ${
+   361→                selectedMaterials.includes(material)
+   362→                  ? 'bg-[#0A0A0A] text-white border-[#0A0A0A]'
+   363→                  : 'border-gray-200 text-gray-700 hover:border-gray-500'
+   364→              }`}
+   365→            >
+   366→              {material}
+   367→            </button>
+   368→          ))}
+   369→        </div>
+   370→      </FilterSection>
+   371→
+   372→      {/* Availability */}
+   373→      <FilterSection title="Availability" section="availability" open={openSections.availability} onToggle={() => toggleSection('availability')}>
+   374→        <label className="flex items-center gap-3 cursor-pointer group">
+   375→          <div
+   376→            className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all duration-200 ${
+   377→              inStockOnly
+   378→                ? 'bg-[#0A0A0A] border-[#0A0A0A]'
+   379→                : 'border-gray-300 group-hover:border-gray-500'
+   380→            }`}
+   381→            onClick={() => setInStockOnly(!inStockOnly)}
+   382→          >
+   383→            {inStockOnly && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+   384→          </div>
+   385→          <span className="font-['Inter'] text-sm text-gray-700 group-hover:text-black transition-colors">
+   386→            In Stock Only
+   387→          </span>
+   388→        </label>
+   389→      </FilterSection>
+   390→    </div>
+   391→  )
+   392→
+   393→  return (
+   394→    <StoreLayout>
+   395→      {/* Hero Banner */}
+   396→      <div className="bg-[#0A0A0A] py-24 md:py-32 px-6 text-center relative overflow-hidden">
+   397→        {/* Subtle pattern */}
+   398→        <div className="absolute inset-0 opacity-[0.02]"
+   399→          style={{
+   400→            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+   401→          }}
+   402→        />
+   403→        <div className="relative z-10">
+   404→          <motion.p
+   405→            initial={{ opacity: 0, y: 10 }}
+   406→            animate={{ opacity: 1, y: 0 }}
+   407→            className="font-['Inter'] text-[10px] tracking-[0.3em] uppercase text-[#C9A96E] mb-4"
+   408→          >
+   409→            Discover
+   410→          </motion.p>
+   411→          <motion.h1
+   412→            initial={{ opacity: 0, y: 20 }}
+   413→            animate={{ opacity: 1, y: 0 }}
+   414→            transition={{ delay: 0.1 }}
+   415→            className="font-['Playfair_Display'] text-4xl md:text-6xl text-white mb-4 font-light"
+   416→          >
+   417→            All Collections
+   418→          </motion.h1>
+   419→          <motion.p
+   420→            initial={{ opacity: 0, y: 20 }}
+   421→            animate={{ opacity: 1, y: 0 }}
+   422→            transition={{ delay: 0.2 }}
+   423→            className="font-['Inter'] text-white/50 text-sm max-w-md mx-auto"
+   424→          >
+   425→            Explore our complete curated selection of luxury fashion, accessories, and lifestyle pieces.
+   426→          </motion.p>
+   427→          <motion.div
+   428→            initial={{ scaleX: 0 }}
+   429→            animate={{ scaleX: 1 }}
+   430→            transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+   431→            className="w-12 h-px bg-[#C9A96E] mx-auto mt-6"
+   432→          />
+   433→        </div>
+   434→      </div>
+   435→
+   436→      {/* Toolbar */}
+   437→      <div className="bg-white border-b border-gray-100 px-6 md:px-12 lg:px-24 sticky top-8 lg:top-[104px] z-30">
+   438→        <div className="max-w-7xl mx-auto flex items-center justify-between py-3.5">
+   439→          <div className="flex items-center gap-4">
+   440→            {/* Mobile filter toggle */}
+   441→            <button
+   442→              onClick={() => setFiltersOpen(true)}
+   443→              className="lg:hidden flex items-center gap-2 font-['Inter'] text-xs tracking-wider uppercase text-gray-600"
+   444→            >
+   445→              <SlidersHorizontal className="w-4 h-4" />
+   446→              Filters
+   447→              {activeFilterCount > 0 && (
+   448→                <span className="w-5 h-5 rounded-full bg-[#0A0A0A] text-white text-[10px] flex items-center justify-center">
+   449→                  {activeFilterCount}
+   450→                </span>
+   451→              )}
+   452→            </button>
+   453→            <p className="hidden sm:block font-['Inter'] text-xs text-gray-500">
+   454→              {loading ? 'Loading...' : `${filteredProducts.length} piece${filteredProducts.length !== 1 ? 's' : ''}`}
+   455→            </p>
+   456→          </div>
+   457→
+   458→          <div className="flex items-center gap-4">
+   459→            {/* Grid toggle */}
+   460→            <div className="hidden md:flex items-center gap-1">
+   461→              <button
+   462→                onClick={() => setGridCols(4)}
+   463→                className={`p-1.5 transition-colors ${gridCols === 4 ? 'text-black' : 'text-gray-300'}`}
+   464→              >
+   465→                <Grid3X3 className="w-4 h-4" />
+   466→              </button>
+   467→              <button
+   468→                onClick={() => setGridCols(3)}
+   469→                className={`p-1.5 transition-colors ${gridCols === 3 ? 'text-black' : 'text-gray-300'}`}
+   470→              >
+   471→                <Grid2X2 className="w-4 h-4" />
+   472→              </button>
+   473→            </div>
+   474→
+   475→            {/* Sort */}
+   476→            <div className="flex items-center gap-1.5">
+   477→              <select
+   478→                value={sort}
+   479→                onChange={(e) => setSort(e.target.value)}
+   480→                className="font-['Inter'] text-xs tracking-wider uppercase text-gray-600 bg-transparent border-none outline-none cursor-pointer appearance-none pr-5"
+   481→              >
+   482→                {SORT_OPTIONS.map((o) => (
+   483→                  <option key={o.value} value={o.value}>{o.label}</option>
+   484→                ))}
+   485→              </select>
+   486→              <ChevronDown className="w-3 h-3 text-gray-400 -ml-3.5 pointer-events-none" />
+   487→            </div>
+   488→          </div>
+   489→        </div>
+   490→      </div>
+   491→
+   492→      {/* Main content area */}
+   493→      <div className="bg-[#FAFAFA] min-h-[60vh]">
+   494→        <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-24">
+   495→          <div className="flex gap-10 py-10 md:py-16">
+   496→            {/* Desktop Filter Sidebar */}
+   497→            <aside className="hidden lg:block w-56 flex-shrink-0">
+   498→              <div className="sticky top-36">
+   499→                <FilterSidebar />
+   500→              </div>
+   501→            </aside>
+   502→
+   503→            {/* Product Grid */}
+   504→            <div className="flex-1">
+   505→              {loading ? (
+   506→                <SkeletonGrid />
+   507→              ) : filteredProducts.length > 0 ? (
+   508→                <div className={`grid gap-4 md:gap-6 ${gridCols === 4 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
+   509→                  {filteredProducts.map((product, index) => (
+   510→                    <ProductCardCompact key={product.id} product={product} index={index} />
+   511→                  ))}
+   512→                </div>
+   513→              ) : (
+   514→                <div className="text-center py-24">
+   515→                  <p className="font-['Playfair_Display'] text-2xl text-gray-400 mb-2">No matches found</p>
+   516→                  <p className="font-['Inter'] text-sm text-gray-400 mb-6">Try adjusting your filters</p>
+   517→                  <button
+   518→                    onClick={clearAllFilters}
+   519→                    className="font-['Inter'] text-xs uppercase tracking-widest px-6 py-3 border border-[#0A0A0A] text-[#0A0A0A] hover:bg-[#0A0A0A] hover:text-white transition-all duration-300"
+   520→                  >
+   521→                    Clear All Filters
+   522→                  </button>
+   523→                </div>
+   524→              )}
+   525→            </div>
+   526→          </div>
+   527→        </div>
+   528→      </div>
+   529→
+   530→      {/* Mobile Filter Drawer */}
+   531→      <AnimatePresence>
+   532→        {filtersOpen && (
+   533→          <>
+   534→            <motion.div
+   535→              className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm"
+   536→              initial={{ opacity: 0 }}
+   537→              animate={{ opacity: 1 }}
+   538→              exit={{ opacity: 0 }}
+   539→              onClick={() => setFiltersOpen(false)}
+   540→            />
+   541→            <motion.aside
+   542→              className="fixed top-0 left-0 bottom-0 z-[71] w-[320px] max-w-[85vw] bg-white overflow-y-auto shadow-2xl"
+   543→              initial={{ x: '-100%' }}
+   544→              animate={{ x: 0 }}
+   545→              exit={{ x: '-100%' }}
+   546→              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+   547→            >
+   548→              <div className="flex items-center justify-between p-5 border-b border-gray-100">
+   549→                <h2 className="font-['Inter'] text-xs uppercase tracking-[0.2em] font-semibold">
+   550→                  Filters
+   551→                </h2>
+   552→                <button
+   553→                  onClick={() => setFiltersOpen(false)}
+   554→                  className="text-gray-400 hover:text-black transition-colors"
+   555→                >
+   556→                  <X className="w-5 h-5" />
+   557→                </button>
+   558→              </div>
+   559→              <div className="p-5">
+   560→                <FilterSidebar />
+   561→              </div>
+   562→            </motion.aside>
+   563→          </>
+   564→        )}
+   565→      </AnimatePresence>
+   566→    </StoreLayout>
+   567→  )
+   568→}
+   569→
+   570→/* ------------------------------------------------------------------ */
+   571→/* Sub-components                                                      */
+   572→/* ------------------------------------------------------------------ */
+   573→
+   574→function FilterSection({ title, section, open, onToggle, children }: {
+   575→  title: string; section: string; open: boolean; onToggle: () => void; children: React.ReactNode
+   576→}) {
+   577→  return (
+   578→    <div className="border-t border-gray-100 pt-4">
+   579→      <button
+   580→        onClick={onToggle}
+   581→        className="flex items-center justify-between w-full mb-3 group"
+   582→      >
+   583→        <span className="font-['Inter'] text-[11px] uppercase tracking-[0.15em] text-gray-900 font-medium">
+   584→          {title}
+   585→        </span>
+   586→        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+   587→      </button>
+   588→      <AnimatePresence>
+   589→        {open && (
+   590→          <motion.div
+   591→            initial={{ height: 0, opacity: 0 }}
+   592→            animate={{ height: 'auto', opacity: 1 }}
+   593→            exit={{ height: 0, opacity: 0 }}
+   594→            transition={{ duration: 0.3 }}
+   595→            className="overflow-hidden"
+   596→          >
+   597→            {children}
+   598→          </motion.div>
+   599→        )}
+   600→      </AnimatePresence>
+   601→    </div>
+   602→  )
+   603→}
+   604→
+   605→function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+   606→  return (
+   607→    <motion.span
+   608→      initial={{ opacity: 0, scale: 0.8 }}
+   609→      animate={{ opacity: 1, scale: 1 }}
+   610→      exit={{ opacity: 0, scale: 0.8 }}
+   611→      className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 rounded-sm font-['Inter'] text-[11px] text-gray-700"
+   612→    >
+   613→      {label}
+   614→      <button onClick={onRemove} className="text-gray-400 hover:text-black transition-colors">
+   615→        <X className="w-3 h-3" />
+   616→      </button>
+   617→    </motion.span>
+   618→  )
+   619→}
+   620→
+   621→function ProductCardCompact({ product, index }: { product: Product; index: number }) {
+   622→  const ref = useRef<HTMLDivElement>(null)
+   623→  const isInView = useInView(ref, { once: true, margin: '-40px' })
+   624→  const hydrated = useHydrated()
+   625→  const addToCart = useCartStore((s) => s.addItem)
+   626→  const openCart = useCartStore((s) => s.openCart)
+   627→  const { addItem: addWishlist, removeItem: removeWishlist, isInWishlist } = useWishlistStore()
+   628→  const setQuickView = useUIStore((s) => s.setQuickViewProduct)
+   629→
+   630→  const isWishlisted = isInWishlist(product.id)
+   631→  const hasImage = product.images && product.images.length > 0
+   632→  const [isHovered, setIsHovered] = useState(false)
+   633→
+   634→  const handleAddToCart = (e: React.MouseEvent) => {
+   635→    e.stopPropagation()
+   636→    addToCart({
+   637→      productId: product.id, name: product.name, price: product.price,
+   638→      image: hasImage ? product.images[0] : '', quantity: 1,
+   639→      size: product.sizes?.[0], color: product.colors?.[0],
+   640→    })
+   641→    openCart()
+   642→  }
+   643→
+   644→  return (
+   645→    <motion.div
+   646→      ref={ref}
+   647→      initial={{ y: 40, opacity: 0 }}
+   648→      animate={isInView ? { y: 0, opacity: 1 } : {}}
+   649→      transition={{ delay: index * 0.04, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+   650→      className="group cursor-pointer"
+   651→      onClick={() => setQuickView(product.id)}
+   652→      onMouseEnter={() => setIsHovered(true)}
+   653→      onMouseLeave={() => setIsHovered(false)}
+   654→    >
+   655→      <div className="relative aspect-[3/4] overflow-hidden bg-[#F0EFED] mb-3">
+   656→        {hasImage ? (
+   657→          <>
+   658→            <img
+   659→              src={product.images[0]}
+   660→              alt={product.name}
+   661→              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+   662→            />
+   663→            {product.images.length > 1 && (
+   664→              <img
+   665→                src={product.images[1]}
+   666→                alt={`${product.name} alternate`}
+   667→                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+   668→                style={{ opacity: isHovered ? 1 : 0 }}
+   669→              />
+   670→            )}
+   671→          </>
+   672→        ) : (
+   673→          <div className="w-full h-full flex items-center justify-center text-gray-300">
+   674→            <List className="w-12 h-12" />
+   675→          </div>
+   676→        )}
+   677→
+   678→        {/* Hover overlay */}
+   679→        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-all duration-500 flex items-end justify-center pb-5 opacity-0 group-hover:opacity-100">
+   680→          <button
+   681→            onClick={handleAddToCart}
+   682→            className="bg-white text-black px-5 py-2.5 text-[10px] uppercase tracking-[0.15em] font-['Inter'] font-medium hover:bg-[#C9A96E] hover:text-white transition-all duration-300 transform translate-y-3 group-hover:translate-y-0 cursor-pointer"
+   683→          >
+   684→            Add to Bag
+   685→          </button>
+   686→        </div>
+   687→
+   688→        {/* Wishlist */}
+   689→        <button
+   690→          onClick={(e) => {
+   691→            e.stopPropagation()
+   692→            if (isWishlisted) removeWishlist(product.id)
+   693→            else addWishlist({ productId: product.id, name: product.name, price: product.price, image: hasImage ? product.images[0] : '', addedAt: new Date().toISOString() })
+   694→          }}
+   695→          className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-10 ${
+   696→            isWishlisted
+   697→              ? 'bg-[#C9A96E] text-white'
+   698→              : 'bg-white/0 group-hover:bg-white/90 text-transparent group-hover:text-black'
+   699→          }`}
+   700→        >
+   701→          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
+   702→        </button>
+   703→
+   704→        {/* Badges */}
+   705→        {product.bestSeller && (
+   706→          <span className="absolute top-3 left-3 bg-[#C9A96E] text-black text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-['Inter'] font-medium z-10">
+   707→            Best Seller
+   708→          </span>
+   709→        )}
+   710→        {!product.bestSeller && product.newArrival && (
+   711→          <span className="absolute top-3 left-3 bg-white text-black text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-['Inter'] font-medium z-10">
+   712→            New
+   713→          </span>
+   714→        )}
+   715→      </div>
+   716→
+   717→      <div className="space-y-1 px-0.5">
+   718→        <p className="text-[10px] uppercase tracking-[0.2em] text-[#C9A96E] font-['Inter'] font-medium">
+   719→          {product.brand?.name || 'MAISON'}
+   720→        </p>
+   721→        <h3 className="font-['Playfair_Display'] text-[15px] leading-tight group-hover:text-[#C9A96E] transition-colors duration-300">
+   722→          {product.name}
+   723→        </h3>
+   724→        <div className="flex items-center gap-2">
+   725→          <span className="text-sm font-['Inter'] font-medium text-[#0A0A0A]">
+   726→            ${product.price.toLocaleString()}
+   727→          </span>
+   728→          {product.comparePrice && (
+   729→            <span className="text-sm text-gray-400 line-through font-['Inter']">
+   730→              ${product.comparePrice.toLocaleString()}
+   731→            </span>
+   732→          )}
+   733→        </div>
+   734→      </div>
+   735→    </motion.div>
+   736→  )
+   737→}
+   738→

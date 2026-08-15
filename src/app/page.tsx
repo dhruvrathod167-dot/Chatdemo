@@ -20,7 +20,7 @@ import VideoCampaign from '@/components/sections/VideoCampaign';
 import BrandStory from '@/components/sections/BrandStory';
 import EditorialSection from '@/components/sections/EditorialSection';
 import Testimonials from '@/components/sections/Testimonials';
-import SocialProof from '@/components/SocialProof';
+import SocialProof from '@/components/sections/SocialProof';
 import InstagramGallery from '@/components/sections/InstagramGallery';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 
@@ -30,7 +30,6 @@ export default function HomePage() {
   const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Small delay to ensure DOM is fully painted
     const timer = setTimeout(() => {
       // Scroll-triggered reveal for sections with .reveal-section class
       const sections = document.querySelectorAll('.reveal-section');
@@ -65,12 +64,13 @@ export default function HomePage() {
           },
         });
       });
+    }, 100);
 
-      return () => {
-        ScrollTrigger.getAll().forEach((t) => t.kill());
-        clearTimeout(timer);
-      };
-    }, []);
+    return () => {
+      ScrollTrigger.getAll().forEach((t) => t.kill());
+      clearTimeout(timer);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">

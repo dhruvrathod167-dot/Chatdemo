@@ -10,6 +10,7 @@ type CartItem = {
   quantity: number;
   size?: string;
   color?: string;
+  brand?: string;
 };
 
 type CartState = {
