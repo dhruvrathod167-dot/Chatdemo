@@ -37,6 +37,22 @@ const config: Config = {
   				DEFAULT: 'hsl(var(--accent))',
   				foreground: 'hsl(var(--accent-foreground))'
   			},
+        chatbg: {
+          light: '#FFFFFF',
+          dark: '#0E1118',
+        },
+        sidebarbg: {
+          light: '#F3F4F6',
+          dark: '#171C26',
+        },
+        panelbg: {
+          light: '#E5E7EB',
+          dark: '#202736',
+        },
+        'nova-accent': {
+          DEFAULT: '#6366F1',
+          hover: '#4F46E5',
+        },
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'

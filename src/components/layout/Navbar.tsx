@@ -214,6 +214,11 @@ const NAV_LINKS: NavCategory[] = [
       { label: 'Tech', href: '/category/accessories' },
     ],
   },
+  {
+    label: 'Nova AI Chat',
+    href: '/chat',
+    hasMegaMenu: false,
+  },
 ];
 
 /* ================================================================ */
