@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { User } from '../types';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
+
 interface AuthState {
   token: string | null;
   user: User | null;
@@ -31,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const response = await fetch('/api/auth/me', {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -53,7 +55,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     set({ error: null });
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -80,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (email, password) => {
     set({ error: null });
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

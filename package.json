@@ -2,18 +2,19 @@
   "name": "nextjs_tailwind_shadcn_ts",
   "version": "0.2.1",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -p 3000",
-    "backend:dev": "powershell -Command \"cd nova-ai/backend; venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8000\"",
     "build": "next build",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "db:push": "prisma db push --accept-data-loss",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "electron": "electron electron/main.js",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "dev:electron": "concurrently \"npm run dev\" \"npm run electron\""
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -106,9 +107,55 @@
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "electron/**/*",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "nova-ai/backend",
+        "to": "nova-ai/backend",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
     "mac": {
       "target": [
         "dmg"
+      ],
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "electron/entitlements.mac.plist",
+      "entitlementsInherit": "electron/entitlements.mac.plist"
+    },
+    "dmg": {
+      "background": null,
+      "iconSize": 100,
+      "contents": [
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 130,
+          "y": 220,
+          "type": "file"
+        }
       ]
     }
   }

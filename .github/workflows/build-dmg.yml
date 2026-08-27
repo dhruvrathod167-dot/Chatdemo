@@ -18,12 +18,23 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci || npm install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
       - name: Build Next.js
         run: npm run build
 
       - name: Build DMG
+        env:
+          # Code signing and notarization secrets (optional for testing, required for production)
+          CSC_LINK: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # If no certificate is provided, set CSC_IDENTITY_AUTO_DISCOVERY to false to bypass local keychain identity lookups
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MACOS_CERTIFICATE_P12 && 'true' || 'false' }}
         run: npx electron-builder --mac dmg
 
       - name: Upload DMG

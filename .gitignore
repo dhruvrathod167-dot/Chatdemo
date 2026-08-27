@@ -52,3 +52,20 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# electron-builder and project output
+**/dist/
+**/build/
+**/node_modules/
+
+# Python cache and byte-compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Compiled binaries and libraries
+*.exe
+*.dll
+*.so
+*.dylib

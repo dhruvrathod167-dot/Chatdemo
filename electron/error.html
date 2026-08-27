@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .error-container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .error-title {
+            color: #e74c3c;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .error-message {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .restart-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .restart-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1 class="error-title">Server Error</h1>
+        <p class="error-message">Could not connect to the Next.js server. Please check that the server is running.</p>
+        <button class="restart-btn" onclick="window.location.reload()">Restart Application</button>
+    </div>
+</body>
+</html>

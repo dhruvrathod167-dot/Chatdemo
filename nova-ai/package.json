@@ -1,0 +1,32 @@
+{
+  "name": "nova-ai-client",
+  "version": "1.0.0",
+  "description": "NOVA AI Desktop Client",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "node dev-app.js",
+    "build": "node build-app.js",
+    "build:frontend": "cd frontend && npm run build",
+    "build:frontend:electron": "cd frontend && npm run build:electron",
+    "build:backend": "cd electron && python build-backend.py",
+    "build:electron": "cd electron && npm run build:win",
+    "install:all": "npm install && cd frontend && npm install && cd electron && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "electron",
+    "nova-ai",
+    "desktop",
+    "chat",
+    "ai"
+  ],
+  "author": "NOVA AI",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

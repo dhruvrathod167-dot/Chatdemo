@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { Conversation, Message, UserSettings } from '../types';
 import { useAuthStore } from './auth';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
+
 interface ChatState {
   conversations: Conversation[];
   currentConversationId: number | null;
@@ -47,7 +49,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
-      const response = await fetch('/api/conversations', {
+      const response = await fetch(`${API_URL}/api/conversations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -67,7 +69,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (!token) return;
     
     try {
-      const response = await fetch(`/api/conversations/${id}/messages`, {
+      const response = await fetch(`${API_URL}/api/conversations/${id}/messages`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -83,7 +85,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return null;
     try {
-      const response = await fetch('/api/conversations', {
+      const response = await fetch(`${API_URL}/api/conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +113,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
-      const response = await fetch(`/api/conversations/${id}`, {
+      const response = await fetch(`${API_URL}/api/conversations/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -134,7 +136,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
-      const response = await fetch(`/api/conversations/${id}`, {
+      const response = await fetch(`${API_URL}/api/conversations/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -208,16 +210,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     };
     set((state) => ({ messages: [...state.messages, clientAssistantMessage] }));
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ conversation_id: convId, content }),
-        signal: controller.signal
-      });
+try {
+        const response = await fetch(`${API_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ conversation_id: convId, content }),
+          signal: controller.signal
+        });
 
       if (!response.ok) {
         throw new Error(`HTTP error ${response.status}`);
@@ -322,7 +324,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     formData.append('file', file);
     
     try {
-      const response = await fetch('/api/files/upload', {
+      const response = await fetch(`${API_URL}/api/files/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -356,7 +358,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
-      const response = await fetch('/api/settings', {
+      const response = await fetch(`${API_URL}/api/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -372,7 +374,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
-      const response = await fetch('/api/settings', {
+      const response = await fetch(`${API_URL}/api/settings`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -393,7 +395,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
-      const response = await fetch('/api/settings/models', {
+      const response = await fetch(`${API_URL}/api/settings/models`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {

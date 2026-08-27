@@ -1,146 +1,189 @@
-# NOVA AI — ChatGPT-like Production Workspace
+# NOVA AI Client
 
-NOVA AI is a complete, full-stack, production-ready AI chatbot workspace similar to ChatGPT. It features user authentication, persistent chat conversations, dynamic models configuration, document uploads, and a local RAG vector retrieval pipeline.
+A standalone desktop application for NOVA AI, built with Electron, FastAPI, and React.
 
 ## Features
 
-- 🔐 **Secure Auth**: JWT token authentication with bcrypt password encryption.
-- 💬 **ChatGPT UI**: Premium dashboard with sidebar search, responsive sidebar menus, suggested queries, and code blocks.
-- ⚡ **Realtime Streaming**: SSE token-by-token completions with a "Stop generation" button.
-- 🗂️ **Context Memory**: Intelligently compiles past messages to maintain continuous context.
-- 📂 **Multi-format RAG**: Upload PDF, DOCX, TXT, and Markdown files to index them for question-answering.
-- 📌 **Citations**: Renders interactive cards pointing to sources utilized in generating an answer.
-- 🤖 **Interchangeable AI Layers**: Supports local LLMs via Ollama or any cloud endpoint conforming to the OpenAI spec.
+- 🖥️ **Desktop Application**: Native desktop experience with Electron
+- 🤖 **NOVA AI Chat**: Full access to NOVA AI chat functionality
+- 🔒 **Authentication**: Secure login and registration
+- 💾 **Data Persistence**: Chat history and settings saved locally
+- 📁 **File Upload**: Support for document uploads and RAG
+- 🎨 **Modern UI**: Clean, responsive interface
+- 🚀 **Easy Setup**: No manual dependency installation required
 
----
-
-## Architecture Monorepo Layout
+## Architecture
 
 ```
-nova-ai/
-├── backend/                  # FastAPI Application
-│   ├── app/
-│   │   ├── api/              # Routers (auth, chat, files, settings)
-│   │   ├── core/             # Configuration & security
-│   │   ├── db/               # Async database connection & sessions
-│   │   ├── models/           # SQLAlchemy DB schemas
-│   │   ├── schemas/          # Pydantic validation schemas
-│   │   ├── services/
-│   │   │   ├── ai/           # Ollama / OpenAI providers
-│   │   │   └── rag/          # Text extraction & vector calculations
-│   │   └── main.py           # Entrypoint app
-│   ├── tests/                # Async pytest test files
-│   ├── requirements.txt      # Backend Python dependencies
-│   ├── Dockerfile
-│   └── .env.example
-├── frontend/                 # React Vite Client
-│   ├── src/
-│   │   ├── components/       # Sidebar, ChatComposer, MessageItem, SettingsModal
-│   │   ├── stores/           # Zustand state management (auth, chat)
-│   │   ├── types/            # TypeScript interfaces
-│   │   ├── App.tsx           # Layout driver
-│   │   ├── main.tsx          # Mount point
-│   │   └── index.css         # Styling, codeblocks, scrollbars
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   ├── nginx.conf            # Serving static assets and proxies
-│   └── Dockerfile
-└── docker-compose.yml        # Multi-container local execution orchestrator
+NOVA AI Client.exe
+├── Electron (Main Process)
+├── FastAPI Backend (127.0.0.1:8001)
+└── React Frontend (Built with Vite)
 ```
-
----
 
 ## Requirements
 
-Ensure you have the following installed:
-- **Python**: 3.10 or higher
-- **NodeJS**: v18 or higher (with `npm`)
-- **Docker & Docker Compose** (Optional, for container setup)
-- **Ollama** (Optional, for running LLMs offline)
+- Windows 10 or later
+- Node.js 16+ (for development only)
+- Python 3.8+ (for development only)
 
----
+## Installation
 
-## Installation & Local Startup
+### For End Users
 
-### 1. Model Provider Setup (Ollama)
+1. Download `NOVA-AI-Client-Setup.exe`
+2. Run the installer
+3. Launch NOVA AI Client from the Start Menu or desktop shortcut
 
-1. Download and install [Ollama](https://ollama.com).
-2. Start Ollama and download a chat LLM:
+### For Portable Use
+
+1. Download `NOVA-AI-Client.exe`
+2. Run the executable directly
+3. No installation required
+
+## Development
+
+### Prerequisites
+
+- Node.js 16+
+- Python 3.8+
+- npm (comes with Node.js)
+
+### Setup
+
+1. Clone the repository
+2. Install dependencies:
    ```bash
-   ollama pull llama3
+   npm run install:all
    ```
 
-### 2. Backend Setup
+### Development Mode
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a Python virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   .\venv\Scripts\activate
-   # On Linux/macOS:
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Copy the environment template:
-   ```bash
-   copy .env.example .env   # Windows
-   cp .env.example .env     # Linux/macOS
-   ```
-5. Start the FastAPI development server:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-   *Note: On launch, database tables will be automatically initialized inside a local sqlite database `nova_ai.db` in the backend folder.*
+Start the development environment:
+```bash
+npm run dev
+```
 
-### 3. Frontend Setup
+This will:
+- Start the FastAPI backend (http://localhost:8001)
+- Start the React frontend (http://localhost:3000)
+- Launch the Electron application
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install npm packages:
-   ```bash
-   npm install
-   ```
-3. Launch the Vite dev server:
-   ```bash
-   npm run dev
-   ```
-4. Open your browser to the local workspace port:
-   `http://localhost:3000`
+### Building for Production
 
----
+Create the Windows installer:
+```bash
+npm run build
+```
 
-## Docker Compose Quickstart
+This will create:
+- `NOVA-AI-Client-Setup.exe` (Windows installer)
+- `NOVA-AI-Client.exe` (Portable executable)
 
-To run the complete application stack (PostgreSQL DB + FastAPI backend + React Vite client) automatically inside container nodes:
+### Manual Build Steps
 
-1. In the root `nova-ai` folder, run:
-   ```bash
-   docker-compose up --build
-   ```
-2. Access the frontend app at `http://localhost:3000`. The API requests are proxied internally to port `8000`.
-3. To connect to an Ollama daemon running on your host machine from inside the docker container, verify that your backend configuration has:
-   ```env
-   OLLAMA_BASE_URL="http://host.docker.internal:11434"
-   ```
+If you need to build individual components:
 
----
+```bash
+# Build frontend
+npm run build:frontend
 
-## Backend Test Suite
+# Build frontend for Electron
+npm run build:frontend:electron
 
-To run the test suite verifying registration, settings updating, and mock SSE chat completions:
+# Build backend with PyInstaller
+npm run build:backend
 
-1. Navigate to `backend` and activate the virtual environment.
-2. Run pytest:
-   ```bash
-   pytest
-   ```
+# Build Electron application
+npm run build:electron
+```
+
+## Project Structure
+
+```
+nova-ai/
+├── electron/                 # Electron application
+│   ├── main.js              # Electron main process
+│   ├── package.json          # Electron package.json
+│   ├── build-backend.py      # PyInstaller build script
+│   └── backend/             # Backend files (copied during build)
+├── frontend/                # React frontend
+│   ├── src/                 # Source code
+│   ├── public/              # Static assets
+│   ├── package.json         # Frontend package.json
+│   ├── vite.config.ts       # Vite configuration
+│   └── vite.electron.config.ts # Electron-specific Vite config
+├── backend/                 # FastAPI backend source
+│   ├── app/                 # Application code
+│   ├── requirements.txt     # Python dependencies
+│   └── nova_ai.db          # SQLite database
+├── package.json             # Root package.json
+├── build-app.js             # Build script
+├── dev-app.js               # Development script
+└── README.md               # This file
+```
+
+## Configuration
+
+### Environment Variables
+
+The application uses environment variables for configuration:
+
+- `VITE_API_URL`: Backend API URL (default: http://127.0.0.1:8001)
+- `VITE_APP_NAME`: Application name (default: NOVA AI Client)
+- `VITE_APP_VERSION`: Application version (default: 1.0.0)
+
+### Backend Configuration
+
+The backend uses a `config.py` file with settings for:
+- Database connection (SQLite by default)
+- AI provider (Ollama or OpenAI)
+- JWT secret key
+- CORS origins
+
+## Usage
+
+1. Launch NOVA AI Client
+2. The application will automatically:
+   - Start the FastAPI backend
+   - Load the React frontend
+   - Open the chat interface
+3. Login with existing credentials or create a new account
+4. Start chatting with NOVA AI
+
+## Troubleshooting
+
+### Common Issues
+
+**Application won't start:**
+- Ensure the backend executable exists in `electron/backend/`
+- Check if port 8001 is available
+- Run as administrator if permission issues occur
+
+**Chat not working:**
+- Check if the backend is running (http://localhost:8001)
+- Verify API configuration in environment variables
+- Check browser console for errors
+
+**Build errors:**
+- Ensure all dependencies are installed
+- Check Python and Node.js versions
+- Verify PyInstaller is properly installed
+
+### Logs
+
+The application logs are available in:
+- Windows Event Viewer (for installed version)
+- Application data directory
+- Browser developer tools (Ctrl+Shift+I)
+
+## Support
+
+For issues and feature requests:
+- Check the troubleshooting section
+- Review the logs for error messages
+- Ensure your system meets the requirements
+
+## License
+
+This project is licensed under the MIT License.
