@@ -28,14 +28,16 @@ jobs:
 
       - name: Build DMG
         env:
-          # Code signing and notarization secrets (optional for testing, required for production)
-          CSC_LINK: ${{ secrets.MACOS_CERTIFICATE_P12 }}
-          CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           # If no certificate is provided, set CSC_IDENTITY_AUTO_DISCOVERY to false to bypass local keychain identity lookups
           CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MACOS_CERTIFICATE_P12 && 'true' || 'false' }}
-        run: npx electron-builder --mac dmg
+        run: |
+          if [ -n "${{ secrets.MACOS_CERTIFICATE_P12 }}" ]; then
+            export CSC_LINK="${{ secrets.MACOS_CERTIFICATE_P12 }}"
+            export CSC_KEY_PASSWORD="${{ secrets.MACOS_CERTIFICATE_PASSWORD }}"
+            export APPLE_ID="${{ secrets.APPLE_ID }}"
+            export APPLE_APP_SPECIFIC_PASSWORD="${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}"
+          fi
+          npx electron-builder --mac dmg
 
       - name: Upload DMG
         uses: actions/upload-artifact@v4
