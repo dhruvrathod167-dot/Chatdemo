@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Conversation, Message, UserSettings } from '../types';
 import { useAuthStore } from './auth';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8002';
 
 interface ChatState {
   conversations: Conversation[];
@@ -245,47 +245,85 @@ try {
           const cleanLine = line.trim();
           if (!cleanLine.startsWith('data: ')) continue;
           
+          let parsed: any;
           try {
-            const parsed = JSON.parse(cleanLine.substring(6));
-            if (parsed.status === 'thinking') {
-              set((state) => ({
-                messages: state.messages.map((m) => 
-                  m.id === clientAssistantMessage.id ? { ...m, content: 'Thinking...' } : m
-                )
-              }));
-            } else if (parsed.chunk) {
-              set((state) => ({
-                messages: state.messages.map((m) => {
-                  if (m.id === clientAssistantMessage.id) {
-                    const currentText = m.content === 'Thinking...' ? '' : m.content;
-                    return { ...m, content: currentText + parsed.chunk };
-                  }
-                  return m;
-                })
-              }));
-            } else if (parsed.status === 'done') {
-              // Finalize message details with DB returned items (id, citations)
-              set((state) => ({
-                messages: state.messages.map((m) => 
-                  m.id === clientAssistantMessage.id ? { 
-                    ...m, 
-                    id: parsed.message_id, 
-                    citations: parsed.citations || [],
-                    content: parsed.content || m.content
-                  } : m
-                )
-              }));
-              // Refresh conversations to update order/title
-              get().fetchConversations();
-            } else if (parsed.status === 'error') {
-              throw new Error(parsed.error || 'Streaming error');
-            }
+            parsed = JSON.parse(cleanLine.substring(6));
           } catch (e) {
             console.error('Failed to parse SSE JSON line:', cleanLine, e);
+            continue;
+          }
+
+          if (parsed.status === 'thinking') {
+            set((state) => ({
+              messages: state.messages.map((m) => 
+                m.id === clientAssistantMessage.id ? { ...m, content: 'Thinking...' } : m
+              )
+            }));
+          } else if (parsed.chunk) {
+            set((state) => ({
+              messages: state.messages.map((m) => {
+                if (m.id === clientAssistantMessage.id) {
+                  const currentText = m.content === 'Thinking...' ? '' : m.content;
+                  return { ...m, content: currentText + parsed.chunk };
+                }
+                return m;
+              })
+            }));
+          } else if (parsed.status === 'done') {
+            // Finalize message details with DB returned items (id, citations)
+            set((state) => ({
+              messages: state.messages.map((m) => 
+                m.id === clientAssistantMessage.id ? { 
+                  ...m, 
+                  id: parsed.message_id, 
+                  citations: parsed.citations || [],
+                  content: parsed.content || m.content
+                } : m
+              )
+            }));
+            // Refresh conversations to update order/title
+            get().fetchConversations();
+          } else if (parsed.status === 'error') {
+            const errorMsg = parsed.error || 'AI generation failed';
+            
+            // Enhanced error handling for API key issues
+            let enhancedErrorMsg = errorMsg;
+            if (errorMsg.includes('Missing Authentication header') || errorMsg.includes('API key')) {
+              enhancedErrorMsg = (
+                `⚠️ **AI Provider Error:**\n\n${errorMsg}\n\n` +
+                `💡 **Quick Fix:**\n` +
+                `1. Go to Settings → Model Options\n` +
+                `2. Either add your OpenAI API key or switch to a free model\n` +
+                `3. Free models like "nvidia/nemotron-3.5-lightning:free" work without API keys`
+              );
+            }
+            
+            set((state) => ({
+              messages: state.messages.map((m) => 
+                m.id === clientAssistantMessage.id ? { 
+                  ...m, 
+                  content: enhancedErrorMsg 
+                } : m
+              )
+            }));
+            return;
           }
         }
       }
       
+      // Safeguard: Check if message is still 'Thinking...' or empty when stream ended unexpectedly
+      const finalMsg = get().messages.find((m) => m.id === clientAssistantMessage.id);
+      if (finalMsg && (finalMsg.content === '' || finalMsg.content === 'Thinking...')) {
+        set((state) => ({
+          messages: state.messages.map((m) => 
+            m.id === clientAssistantMessage.id ? { 
+              ...m, 
+              content: '⚠️ **Error:** Connection ended before receiving an AI response.' 
+            } : m
+          )
+        }));
+      }
+
       // Clear uploaded files on successful send
       set({ uploadedFiles: [] });
     } catch (err: any) {
@@ -297,7 +335,9 @@ try {
           messages: state.messages.map((m) => 
             m.id === clientAssistantMessage.id ? { 
               ...m, 
-              content: m.content + `\n\n*(Error: ${err.message || 'Connection lost'})*` 
+              content: m.content && m.content !== 'Thinking...'
+                ? `${m.content}\n\n*(Error: ${err.message || 'Connection lost'})*`
+                : `⚠️ **Connection Error:** ${err.message || 'Could not connect to backend'}`
             } : m
           )
         }));
@@ -358,12 +398,16 @@ try {
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
+      console.log('Fetching settings...');
       const response = await fetch(`${API_URL}/api/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
         const settings = await response.json();
+        console.log('Settings fetched:', settings);
         set({ settings });
+      } else {
+        console.error('Failed to fetch settings, status:', response.status);
       }
     } catch (err) {
       console.error('Failed to fetch settings', err);
@@ -374,6 +418,7 @@ try {
     const token = useAuthStore.getState().token;
     if (!token) return;
     try {
+      console.log('Updating settings with:', settingsPatch);
       const response = await fetch(`${API_URL}/api/settings`, {
         method: 'PATCH',
         headers: {
@@ -384,10 +429,20 @@ try {
       });
       if (response.ok) {
         const settings = await response.json();
+        console.log('Settings updated:', settings);
         set({ settings });
+        
+        // Force re-fetch settings to ensure sync
+        setTimeout(() => {
+          fetchSettings();
+        }, 100);
+      } else {
+        console.error('Failed to update settings, status:', response.status);
       }
     } catch (err) {
       console.error('Failed to update settings', err);
+      // Re-fetch settings on error to ensure we have the latest state
+      fetchSettings();
     }
   },
 

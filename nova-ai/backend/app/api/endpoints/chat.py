@@ -232,6 +232,12 @@ async def chat_completion(
                 full_assistant_response += chunk
                 yield f"data: {json.dumps({'chunk': chunk})}\n\n"
                 
+            if not full_assistant_response:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="AI provider returned an empty response."
+                )
+
             # Stream finalized: Save to DB in a separate clean session context
             async with SessionLocal() as local_db:
                 assistant_msg = Message(
@@ -252,15 +258,25 @@ async def chat_completion(
                 await local_db.commit()
                 await local_db.refresh(assistant_msg)
                 
-                yield f"data: {json.dumps({
-                    'status': 'done',
-                    'message_id': assistant_msg.id,
-                    'citations': assistant_msg.citations,
-                    'content': full_assistant_response
-                })}\n\n"
+                done_payload = {
+                    "status": "done",
+                    "message_id": assistant_msg.id,
+                    "citations": assistant_msg.citations,
+                    "content": full_assistant_response
+                }
+                yield f"data: {json.dumps(done_payload)}\n\n"
                 
         except Exception as e:
-            logger.error(f"Error during AI stream generation: {str(e)}")
-            yield f"data: {json.dumps({'status': 'error', 'error': str(e)})}\n\n"
+            error_detail = getattr(e, "detail", str(e))
+            logger.error(f"Error during AI stream generation: {error_detail}")
+            yield f"data: {json.dumps({'status': 'error', 'error': error_detail})}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )

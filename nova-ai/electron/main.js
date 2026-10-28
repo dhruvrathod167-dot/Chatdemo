@@ -30,11 +30,24 @@ function isPortAvailable(port) {
 // Function to start the backend
 async function startBackend() {
   try {
+    const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+
+    // First check if port 8001 is already healthy
+    try {
+      const fetch = require('node-fetch');
+      const healthRes = await fetch('http://127.0.0.1:8001/healthz', { timeout: 2000 });
+      if (healthRes.ok) {
+        console.log('✅ Backend is already running and healthy on port 8001. Skipping spawn.');
+        return;
+      }
+    } catch (e) {
+      // Backend not running or not responding to healthz
+    }
+
     // Check if port 8001 is available
     const portAvailable = await isPortAvailable(8001);
     if (!portAvailable) {
-      console.log('Port 8001 is already in use. Killing existing process...');
-      // Try to kill existing process on port 8001
+      console.log('Port 8001 is in use by non-responsive process. Cleaning up...');
       exec('netstat -ano | findstr :8001', (err, stdout, stderr) => {
         if (stdout) {
           const lines = stdout.split('\n');
@@ -51,20 +64,21 @@ async function startBackend() {
           }
         }
       });
+      // Wait for port release
+      await new Promise(r => setTimeout(r, 1000));
     }
 
     // Get the path to the Python executable and backend directory
-    const isDev = process.env.NODE_ENV === 'development';
     let pythonPath, backendDir, appPath;
     
     if (isDev) {
-      // Development mode - use the actual backend directory
+      // Development mode - use the canonical backend directory
       backendDir = path.join(__dirname, '..', 'backend');
-      pythonPath = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
+      const venvPy = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
+      pythonPath = fs.existsSync(venvPy) ? venvPy : 'python';
       appPath = path.join(backendDir, 'app', 'main.py');
     } else {
       // Production mode - use bundled backend
-      // Check both asar and regular paths
       const backendDirAsar = path.join(__dirname, 'resources', 'app.asar', 'backend');
       const backendDirRegular = path.join(__dirname, 'backend');
       
@@ -76,7 +90,8 @@ async function startBackend() {
         throw new Error(`Backend directory not found. Tried: ${backendDirAsar}, ${backendDirRegular}`);
       }
       
-      pythonPath = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
+      const venvPy = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
+      pythonPath = fs.existsSync(venvPy) ? venvPy : 'python';
       appPath = path.join(backendDir, 'app', 'main.py');
     }
 
@@ -86,16 +101,12 @@ async function startBackend() {
     console.log('Python Path:', pythonPath);
     console.log('App Path:', appPath);
     console.log('Backend Dir Exists:', fs.existsSync(backendDir));
-    console.log('Python Executable Exists:', fs.existsSync(pythonPath));
     console.log('App File Exists:', fs.existsSync(appPath));
     console.log('===============================');
 
-    // Verify all required paths exist
+    // Verify required paths exist
     if (!fs.existsSync(backendDir)) {
       throw new Error(`Backend directory not found at: ${backendDir}`);
-    }
-    if (!fs.existsSync(pythonPath)) {
-      throw new Error(`Python executable not found at: ${pythonPath}`);
     }
     if (!fs.existsSync(appPath)) {
       throw new Error(`App file not found at: ${appPath}`);
@@ -213,7 +224,7 @@ function createWindow() {
   });
 
   // Load the frontend
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
   if (isDev) {
     // Load from local development server
     mainWindow.loadURL('http://localhost:3000');

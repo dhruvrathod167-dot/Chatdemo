@@ -64,6 +64,22 @@
   font-size: inherit;
 }
 
+/* Light mode styles for prose code blocks */
+html:not(.dark) .prose pre {
+  background-color: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+html:not(.dark) .prose pre code {
+  color: #1e293b;
+}
+
+/* Light mode inline code */
+html:not(.dark) .prose code {
+  background-color: rgba(226, 232, 240, 0.8);
+  color: #1e293b;
+}
+
 .prose h1, .prose h2, .prose h3 {
   font-weight: 600;
   margin-top: 1.25rem;

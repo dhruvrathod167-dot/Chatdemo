@@ -34,6 +34,7 @@ async def get_settings(
         temperature=user_settings.temperature,
         max_tokens=user_settings.max_tokens,
         system_prompt=user_settings.system_prompt,
+        api_key=user_settings.api_key,
         email=current_user.email,
         user_id=current_user.id
     )
@@ -65,12 +66,14 @@ async def update_settings(
         temperature=user_settings.temperature,
         max_tokens=user_settings.max_tokens,
         system_prompt=user_settings.system_prompt,
+        api_key=user_settings.api_key,
         email=current_user.email,
         user_id=current_user.id
     )
 
 @router.get("/models", response_model=List[str])
 async def get_available_models(
+    provider: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -83,10 +86,18 @@ async def get_available_models(
         await db.commit()
         await db.refresh(user_settings)
         
-    provider = get_ai_provider(user_settings)
+    target_settings = user_settings
+    if provider:
+        target_settings = UserSettings(
+            user_id=current_user.id,
+            provider=provider,
+            model=None,
+            api_key=user_settings.api_key
+        )
+        
+    ai_provider = get_ai_provider(target_settings)
     try:
-        models = await provider.list_models()
+        models = await ai_provider.list_models()
         return models
     except Exception as e:
-        # Fallback to configured model if list fails
         return [user_settings.model]

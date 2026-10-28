@@ -12,6 +12,7 @@ export interface UserSettings {
   temperature: number;
   max_tokens: number;
   system_prompt: string | null;
+  api_key?: string | null;
   email: string;
   user_id: number;
 }

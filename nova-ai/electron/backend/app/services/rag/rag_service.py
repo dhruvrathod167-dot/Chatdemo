@@ -140,15 +140,7 @@ async def retrieve_relevant_contexts(
     Generates embedding for query, performs cosine similarity match against all of user's chunks,
     and returns list of (chunk_content, score, filename).
     """
-    # 1. Generate query embedding
-    provider = get_ai_provider(user_settings)
-    try:
-        query_vector = await provider.generate_embeddings(query)
-    except Exception as e:
-        logger.error(f"Failed to embed query for retrieval: {str(e)}")
-        return []
-        
-    # 2. Fetch user's files and document chunks
+    # 1. Fetch user's files and document chunks first (fast local query)
     stmt = (
         select(DocumentChunk, UploadedFile.filename)
         .join(UploadedFile)
@@ -157,6 +149,20 @@ async def retrieve_relevant_contexts(
     result = await db.execute(stmt)
     chunks_with_filenames = result.all()
     
+    # If no files have been uploaded, skip embedding call entirely for zero latency
+    if not chunks_with_filenames:
+        return []
+
+    # 2. Generate query embedding only when files exist
+    provider = get_ai_provider(user_settings)
+    try:
+        query_vector = await provider.generate_embeddings(query)
+        if not query_vector:
+            return []
+    except Exception as e:
+        logger.error(f"Failed to embed query for retrieval: {str(e)}")
+        return []
+        
     # 3. Calculate similarities
     scored_chunks = []
     for chunk, filename in chunks_with_filenames:

@@ -34,13 +34,12 @@ class OllamaProvider(AIProvider):
         temperature: float,
         max_tokens: int,
     ) -> AsyncIterator[str]:
-        active_model = await self._get_available_model()
         # Formulate full conversation payload including system prompt
         full_messages = [{"role": "system", "content": system_prompt}]
         full_messages.extend(messages)
         
         payload = {
-            "model": active_model,
+            "model": self.model,
             "messages": full_messages,
             "options": {
                 "temperature": temperature,
@@ -51,14 +50,14 @@ class OllamaProvider(AIProvider):
         
         url = f"{self.base_url}/api/chat"
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=5.0, read=60.0, write=5.0, pool=5.0)) as client:
                 async with client.stream("POST", url, json=payload) as response:
                     if response.status_code != 200:
                         detail = await response.aread()
-                        logger.error(f"Ollama returned status {response.status_code}: {detail.decode()}")
+                        logger.error(f"Ollama returned status {response.status_code}: {detail.decode(errors='replace')}")
                         raise HTTPException(
                             status_code=status.HTTP_502_BAD_GATEWAY,
-                            detail=f"Ollama server returned error: {response.status_code}"
+                            detail=f"Ollama returned error: {response.status_code}"
                         )
                     
                     async for line in response.aiter_lines():
@@ -66,18 +65,19 @@ class OllamaProvider(AIProvider):
                             continue
                         try:
                             data = json.loads(line)
-                            # Ollama returns content in message object
                             content = data.get("message", {}).get("content", "")
                             if content:
                                 yield content
                         except json.JSONDecodeError:
                             continue
-        except httpx.ConnectError:
+        except (httpx.ConnectError, httpx.ConnectTimeout):
             logger.error("Could not connect to Ollama server.")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Ollama provider is unavailable. Please make sure the Ollama service is running locally."
+                detail=f"Ollama provider is unavailable at {self.base_url}. Please make sure Ollama is installed and running, or switch to OpenAI in Settings."
             )
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Error communicating with Ollama: {str(e)}")
             raise HTTPException(

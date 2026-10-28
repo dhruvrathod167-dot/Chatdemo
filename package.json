@@ -13,7 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "electron": "electron electron/main.js",
-    "dist": "npm run build && electron-builder",
+    "dist": "node electron/build-standalone.js",
     "dev:electron": "concurrently \"npm run dev\" \"npm run electron\""
   },
   "dependencies": {
@@ -104,6 +104,7 @@
   "build": {
     "appId": "com.chatdemo.app",
     "productName": "Chatdemo",
+    "asar": false,
     "directories": {
       "output": "dist"
     },
@@ -116,9 +117,19 @@
     ],
     "extraResources": [
       {
-        "from": "nova-ai/backend",
-        "to": "nova-ai/backend",
+        "from": "electron/bin",
+        "to": "bin",
         "filter": ["**/*"]
+      },
+      {
+        "from": "db",
+        "to": "db",
+        "filter": ["custom.db"]
+      },
+      {
+        "from": "nova-ai/backend",
+        "to": "db",
+        "filter": ["nova_ai.db"]
       }
     ],
     "win": {

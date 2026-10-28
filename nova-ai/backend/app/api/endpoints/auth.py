@@ -7,6 +7,7 @@ from sqlalchemy.future import select
 from app.db.session import get_db
 from app.models.models import User, UserSettings
 from app.schemas.schemas import UserCreate, UserResponse, Token, UserSettingsResponse
+from app.core.config import settings
 from app.core.security import get_password_hash, verify_password, create_access_token, decode_access_token
 
 router = APIRouter()
@@ -51,8 +52,14 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     db.add(user)
     await db.flush()  # Flush to get user.id
     
-    # Create default user settings
-    default_settings = UserSettings(user_id=user.id)
+    # Create default user settings aligned with configured AI_PROVIDER
+    default_provider = settings.AI_PROVIDER
+    default_model = settings.OPENAI_MODEL if default_provider == "openai" else settings.OLLAMA_MODEL
+    default_settings = UserSettings(
+        user_id=user.id,
+        provider=default_provider,
+        model=default_model
+    )
     db.add(default_settings)
     
     await db.commit()

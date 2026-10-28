@@ -28,11 +28,12 @@ class UserSettings(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False)
     theme: Mapped[str] = mapped_column(String(50), default="dark")  # "dark" or "light"
-    provider: Mapped[str] = mapped_column(String(50), default="ollama")  # "ollama" or "openai"
-    model: Mapped[str] = mapped_column(String(100), default="llama3")
+    provider: Mapped[str] = mapped_column(String(50), default="openrouter")  # "openrouter", "openai", "gemini", or "ollama"
+    model: Mapped[str] = mapped_column(String(100), default="nvidia/nemotron-3.5-lightning:free")
     temperature: Mapped[float] = mapped_column(Float, default=0.7)
     max_tokens: Mapped[int] = mapped_column(Integer, default=2048)
     system_prompt: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    api_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="settings")

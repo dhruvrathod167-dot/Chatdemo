@@ -33,6 +33,7 @@ class UserSettings(Base):
     temperature: Mapped[float] = mapped_column(Float, default=0.7)
     max_tokens: Mapped[int] = mapped_column(Integer, default=2048)
     system_prompt: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    api_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="settings")

@@ -33,6 +33,7 @@ class UserSettingsBase(BaseModel):
     temperature: float = 0.7
     max_tokens: int = 2048
     system_prompt: Optional[str] = None
+    api_key: Optional[str] = None
 
 class UserSettingsUpdate(BaseModel):
     theme: Optional[str] = None
@@ -41,6 +42,7 @@ class UserSettingsUpdate(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     system_prompt: Optional[str] = None
+    api_key: Optional[str] = None
 
 class UserSettingsResponse(UserSettingsBase):
     user_id: int
@@ -108,5 +110,6 @@ class FullSettingsResponse(BaseModel):
     temperature: float
     max_tokens: int
     system_prompt: Optional[str]
+    api_key: Optional[str]
     email: str
     user_id: int

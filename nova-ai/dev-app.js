@@ -5,103 +5,195 @@ const { promisify } = require('util');
 
 const exec = promisify(require('child_process').exec);
 
+function startProcess(command, args, options, name) {
+  const child = spawn(command, args, {
+    ...options,
+    env: { ...process.env, NODE_ENV: 'development', ...(options && options.env ? options.env : {}) },
+    shell: true
+  });
+
+  child.stdout.on('data', (data) => {
+    const output = data.toString().trim();
+    if (output) {
+      console.log(`${name}: ${output}`);
+    }
+  });
+
+  child.stderr.on('data', (data) => {
+    const output = data.toString().trim();
+    if (output) {
+      console.error(`${name} Error: ${output}`);
+    }
+  });
+
+  child.on('error', (error) => {
+    console.error(`❌ ${name} process error:`, error);
+  });
+
+  return child;
+}
+
+
 async function devApp() {
+  process.env.NODE_ENV = 'development';
   console.log('🚀 Starting NOVA AI Client development mode...');
-  
+
   const electronDir = path.join(__dirname, 'electron');
   const frontendDir = path.join(__dirname, 'frontend');
   const backendDir = path.join(__dirname, 'backend');
-  
+
   try {
-    // Step 1: Install dependencies if needed
+    // ==========================================
+    // STEP 1: Check dependencies
+    // ==========================================
+
     console.log('📦 Checking dependencies...');
-    
-    // Check if electron dependencies are installed
+
     if (!fs.existsSync(path.join(electronDir, 'node_modules'))) {
       console.log('📦 Installing Electron dependencies...');
-      await exec('npm install', { cwd: electronDir });
+
+      await exec('npm.cmd install', {
+        cwd: electronDir
+      });
     }
-    
-    // Check if frontend dependencies are installed
+
     if (!fs.existsSync(path.join(frontendDir, 'node_modules'))) {
       console.log('📦 Installing frontend dependencies...');
-      await exec('npm install', { cwd: frontendDir });
+
+      await exec('npm.cmd install', {
+        cwd: frontendDir
+      });
     }
-    
-    // Step 2: Start development environment
+
+    // ==========================================
+    // STEP 2: Start development environment
+    // ==========================================
+
     console.log('🔧 Starting development environment...');
-    
-    // Start backend in background
+
+    // ==========================================
+    // BACKEND
+    // ==========================================
+
     console.log('🚀 Starting backend...');
-    const backendProcess = spawn('python', ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8001', '--reload'], {
-      cwd: backendDir,
-      stdio: 'pipe'
-    });
-    
-    backendProcess.stdout.on('data', (data) => {
-      console.log(`Backend: ${data.toString().trim()}`);
-    });
-    
-    backendProcess.stderr.on('data', (data) => {
-      console.error(`Backend Error: ${data.toString().trim()}`);
-    });
-    
-    // Wait for backend to start
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Start frontend in background
+
+    const pythonExe = fs.existsSync(path.join(backendDir, 'venv', 'Scripts', 'python.exe'))
+      ? path.join(backendDir, 'venv', 'Scripts', 'python.exe')
+      : 'python';
+
+    const backendProcess = startProcess(
+      pythonExe,
+      [
+        '-m',
+        'uvicorn',
+        'app.main:app',
+        '--host',
+        '127.0.0.1',
+        '--port',
+        '8001',
+        '--reload'
+      ],
+      {
+        cwd: backendDir,
+        stdio: ['ignore', 'pipe', 'pipe']
+      },
+      'Backend'
+    );
+
+    // Give backend time to start
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // ==========================================
+    // FRONTEND
+    // ==========================================
+
     console.log('🚀 Starting frontend...');
-    const frontendProcess = spawn('npm', ['run', 'dev'], {
-      cwd: frontendDir,
-      stdio: 'pipe'
-    });
-    
-    frontendProcess.stdout.on('data', (data) => {
-      console.log(`Frontend: ${data.toString().trim()}`);
-    });
-    
-    frontendProcess.stderr.on('data', (data) => {
-      console.error(`Frontend Error: ${data.toString().trim()}`);
-    });
-    
-    // Wait for frontend to start
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Start Electron
+
+    const frontendProcess = startProcess(
+      'npm.cmd',
+      ['run', 'dev'],
+      {
+        cwd: frontendDir,
+        stdio: ['ignore', 'pipe', 'pipe']
+      },
+      'Frontend'
+    );
+
+    // Give frontend time to start
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // ==========================================
+    // ELECTRON
+    // ==========================================
+
     console.log('⚛️ Starting Electron...');
-    const electronProcess = spawn('npm', ['run', 'start'], {
-      cwd: electronDir,
-      stdio: 'pipe'
-    });
-    
-    electronProcess.stdout.on('data', (data) => {
-      console.log(`Electron: ${data.toString().trim()}`);
-    });
-    
-    electronProcess.stderr.on('data', (data) => {
-      console.error(`Electron Error: ${data.toString().trim()}`);
-    });
-    
-    // Handle graceful shutdown
-    process.on('SIGINT', () => {
-      console.log('🛑 Shutting down...');
-      backendProcess.kill();
-      frontendProcess.kill();
-      electronProcess.kill();
-      process.exit(0);
-    });
-    
-    console.log('✅ Development environment started!');
-    console.log('📁 Backend: http://localhost:8001');
+
+    const electronProcess = startProcess(
+      'npm.cmd',
+      ['run', 'start'],
+      {
+        cwd: electronDir,
+        stdio: ['ignore', 'pipe', 'pipe']
+      },
+      'Electron'
+    );
+
+    // ==========================================
+    // SUCCESS
+    // ==========================================
+
+    console.log('');
+    console.log('==============================================');
+    console.log('✅ NOVA AI development environment started!');
+    console.log('==============================================');
+    console.log('📁 Backend:  http://127.0.0.1:8001');
     console.log('📁 Frontend: http://localhost:3000');
-    console.log('📁 Electron: Main window should open automatically');
+    console.log('📁 Electron: Starting...');
+    console.log('==============================================');
     console.log('Press Ctrl+C to stop');
-    
+    console.log('');
+
+    // ==========================================
+    // GRACEFUL SHUTDOWN
+    // ==========================================
+
+    const shutdown = () => {
+      console.log('');
+      console.log('🛑 Shutting down NOVA AI...');
+
+      try {
+        backendProcess.kill();
+      } catch (error) {
+        console.log('Backend already stopped.');
+      }
+
+      try {
+        frontendProcess.kill();
+      } catch (error) {
+        console.log('Frontend already stopped.');
+      }
+
+      try {
+        electronProcess.kill();
+      } catch (error) {
+        console.log('Electron already stopped.');
+      }
+
+      process.exit(0);
+    };
+
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+
   } catch (error) {
-    console.error('❌ Development setup failed:', error);
+    console.error('');
+    console.error('❌ Development setup failed:');
+    console.error(error);
+    console.error('');
+
     process.exit(1);
   }
 }
 
-// Run the development setup
+// Start application
 devApp();

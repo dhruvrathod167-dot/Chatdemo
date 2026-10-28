@@ -30,7 +30,7 @@ interface ChatState {
 }
 
 const getApiUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 };
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -253,45 +253,70 @@ export const useChatStore = create<ChatState>((set, get) => ({
           const cleanLine = line.trim();
           if (!cleanLine.startsWith('data: ')) continue;
           
+          let parsed: any;
           try {
-            const parsed = JSON.parse(cleanLine.substring(6));
-            if (parsed.status === 'thinking') {
-              set((state) => ({
-                messages: state.messages.map((m) => 
-                  m.id === clientAssistantMessage.id ? { ...m, content: 'Thinking...' } : m
-                )
-              }));
-            } else if (parsed.chunk) {
-              set((state) => ({
-                messages: state.messages.map((m) => {
-                  if (m.id === clientAssistantMessage.id) {
-                    const currentText = m.content === 'Thinking...' ? '' : m.content;
-                    return { ...m, content: currentText + parsed.chunk };
-                  }
-                  return m;
-                })
-              }));
-            } else if (parsed.status === 'done') {
-              set((state) => ({
-                messages: state.messages.map((m) => 
-                  m.id === clientAssistantMessage.id ? { 
-                    ...m, 
-                    id: parsed.message_id, 
-                    citations: parsed.citations || [],
-                    content: parsed.content || m.content
-                  } : m
-                )
-              }));
-              get().fetchConversations();
-            } else if (parsed.status === 'error') {
-              throw new Error(parsed.error || 'Streaming error');
-            }
-          } catch (e: any) {
+            parsed = JSON.parse(cleanLine.substring(6));
+          } catch (e) {
             console.error('Failed to parse SSE JSON line:', cleanLine, e);
+            continue;
+          }
+
+          if (parsed.status === 'thinking') {
+            set((state) => ({
+              messages: state.messages.map((m) => 
+                m.id === clientAssistantMessage.id && (m.content === '' || m.content === 'Thinking...') ? { ...m, content: 'Thinking...' } : m
+              )
+            }));
+          } else if (parsed.chunk) {
+            set((state) => ({
+              messages: state.messages.map((m) => {
+                if (m.id === clientAssistantMessage.id) {
+                  const currentText = m.content === 'Thinking...' ? '' : m.content;
+                  return { ...m, content: currentText + parsed.chunk };
+                }
+                return m;
+              })
+            }));
+          } else if (parsed.status === 'done') {
+            set((state) => ({
+              messages: state.messages.map((m) => 
+                m.id === clientAssistantMessage.id ? { 
+                  ...m, 
+                  id: parsed.message_id, 
+                  citations: parsed.citations || [],
+                  content: parsed.content || m.content
+                } : m
+              )
+            }));
+            get().fetchConversations();
+          } else if (parsed.status === 'error') {
+            const errorMsg = parsed.error || 'AI generation failed';
+            set((state) => ({
+              messages: state.messages.map((m) => 
+                m.id === clientAssistantMessage.id ? { 
+                  ...m, 
+                  content: `⚠️ **AI Provider Error:**\n${errorMsg}` 
+                } : m
+              )
+            }));
+            return;
           }
         }
       }
       
+      // Safeguard: Check if message is still 'Thinking...' or empty when stream ended unexpectedly
+      const finalMsg = get().messages.find((m) => m.id === clientAssistantMessage.id);
+      if (finalMsg && (finalMsg.content === '' || finalMsg.content === 'Thinking...')) {
+        set((state) => ({
+          messages: state.messages.map((m) => 
+            m.id === clientAssistantMessage.id ? { 
+              ...m, 
+              content: '⚠️ **Error:** Connection ended before receiving an AI response.' 
+            } : m
+          )
+        }));
+      }
+
       set({ uploadedFiles: [] });
     } catch (err: any) {
       if (err.name === 'AbortError') {
@@ -302,7 +327,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           messages: state.messages.map((m) => 
             m.id === clientAssistantMessage.id ? { 
               ...m, 
-              content: m.content + `\n\n*(Error: ${err.message || 'Connection lost'})*` 
+              content: `⚠️ **Error:** ${err.message || 'Connection lost'}` 
             } : m
           )
         }));

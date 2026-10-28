@@ -34,6 +34,7 @@ async def get_settings(
         temperature=user_settings.temperature,
         max_tokens=user_settings.max_tokens,
         system_prompt=user_settings.system_prompt,
+        api_key=user_settings.api_key,
         email=current_user.email,
         user_id=current_user.id
     )
@@ -65,6 +66,7 @@ async def update_settings(
         temperature=user_settings.temperature,
         max_tokens=user_settings.max_tokens,
         system_prompt=user_settings.system_prompt,
+        api_key=user_settings.api_key,
         email=current_user.email,
         user_id=current_user.id
     )

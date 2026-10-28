@@ -18,6 +18,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(2048);
   const [systemPrompt, setSystemPrompt] = useState('');
+  const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -30,6 +31,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           setTemperature(s.temperature);
           setMaxTokens(s.max_tokens);
           setSystemPrompt(s.system_prompt || '');
+          setApiKey(s.api_key || '');
         }
       });
       fetchModels();
@@ -39,22 +41,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    await updateSettings({
-      theme,
-      provider,
-      model,
-      temperature,
-      max_tokens: maxTokens,
-      system_prompt: systemPrompt
-    });
-    
-    // Apply theme
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    try {
+      await updateSettings({
+        theme,
+        provider,
+        model,
+        temperature,
+        max_tokens: maxTokens,
+        system_prompt: systemPrompt,
+        api_key: apiKey || null
+      });
+      
+      // Apply theme
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      onClose();
+    } catch (error) {
+      console.error('Failed to save settings:', error);
     }
-    onClose();
   };
 
   return (
@@ -171,7 +178,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                     {provider === 'ollama' 
                       ? "Requires Ollama to be running on localhost:11434 with models pre-downloaded." 
-                      : "Uses OpenAI API configurations defined in backend environment."}
+                      : "Uses OpenAI API configurations. Free models like 'nvidia/nemotron-3.5-lightning:free' work without API keys!"}
                   </p>
                 </div>
               </div>
@@ -201,6 +208,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     />
                   )}
                 </div>
+
+                {provider === 'openai' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">API Key (Optional if set in .env)</label>
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="sk-..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent transition font-mono text-sm"
+                    />
+                    <p className="mt-1.5 text-xs text-gray-500">
+                      Leave empty to use the OPENAI_API_KEY from backend .env, or try free models like "nvidia/nemotron-3.5-lightning:free"
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <div className="flex justify-between text-sm font-semibold mb-1">
